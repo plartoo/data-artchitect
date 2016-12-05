@@ -25,9 +25,10 @@ def send_notification_email(table_name, row_count, cmd_used, status_msg):
 
 
 def send_error_email(error_msg):
-    subject = "ERROR in check_row_count.py"
+    error_msg = str(error_msg).replace('\\r\\n', '<br>')
+    subject = "ERROR in process_sales.py"
     body = """
-    <p>check_row_count.py script has run into error below:</p>
+    <p>process_sales.py script has run into error below:</p>
     <p><strong style="color: red;">{0}</strong></p>
     """.format(error_msg)
     Mailer().send_email(ERROR_EMAIL_RECIPIENTS, subject, body)
