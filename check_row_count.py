@@ -4,7 +4,6 @@ from mailer import Mailer
 
 import subprocess
 
-
 class RowCountInValid(Exception):
     pass
 
@@ -14,7 +13,7 @@ class ErrorInUpdatingRowCountTableEntry(Exception):
 
 
 def send_notification_email(table_name, row_count, cmd_used, status_msg):
-    status_msg = status_msg.replace('/r/n', '<br>')
+    status_msg = str(status_msg).replace('\\r\\n', '<br>')
     subject = "Row count has changed for: " + table_name
     body = """
     <p>Because row count for table {0} has changed to {1},</p>
@@ -124,9 +123,9 @@ def main():
                                 for cmds in procedures:
                                     try:
                                         cmd = ' '.join([] + cmds)
+                                        print(cmd)
                                         output = subprocess.check_output(cmd,
                                                                          stderr=subprocess.PIPE)
-                                        print(cmd)
                                         send_notification_email(table, new_obsvn_cnt, cmd, output)
                                     except Exception as err:
                                         send_error_email(err.stderr)
