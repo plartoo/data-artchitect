@@ -42,7 +42,7 @@ CREATE TABLE
             VariableName,
             Outlet,
             Creative,
-            Period LIMIT 10
+            Period
     );
 
 INSERT
