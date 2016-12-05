@@ -3,7 +3,7 @@ import sys
 import time
 import subprocess
 
-
+log_folder = "Logs/"
 python_script = sys.argv[1]
 interval = sys.argv[2]
 dir_name = os.path.dirname(os.path.abspath(__file__))
@@ -15,7 +15,7 @@ print("This program runs processes every:", interval, "secs")
 print("Program started at:", time.strftime("%c"))
 
 while True:
-    log_file = os.path.splitext(python_script)[0] + '.txt'
+    log_file = log_folder + os.path.splitext(python_script)[0] + '.txt'
     with open(log_file, 'a') as fo:
         cur_time = time.strftime("%c")
         print("Current time:", cur_time, end="\r")
