@@ -129,23 +129,23 @@ def main():
                                                                          stderr=subprocess.PIPE)
                                         send_notification_email(table, new_obsvn_cnt, cmd, output)
                                     except Exception as err:
-                                        send_error_email(err.stderr)
+                                        send_error_email(err)
                         else: # Row count for the table has changed. Enter a new entry/row for this.
                             q = add_new_row_cnt_record(row_cnt_table, schema_name, table, cur_row_cnt)
                             run_query_to_modify_row_cnt_table(cursor, q)
 
     except vertica_python.errors.QueryError as err:
         print("Vertica Query Error!")
-        send_error_email(str(err))
+        send_error_email(err)
     except (RowCountInValid, ErrorInUpdatingRowCountTableEntry) as err:
         print("Error related to updating or fetching row count of the table!")
-        send_error_email(str(err.args[0]))
+        send_error_email(err.args[0])
     except subprocess.CalledProcessError as err:
         print("CalledProcessError. Detail =>", err)
-        send_error_email(str(err))
+        send_error_email(err)
     except Exception as err:
         print("Unknown Error Occurred!")
-        send_error_email(str(err))
+        send_error_email(err)
 
 if __name__ == "__main__":
     main()
