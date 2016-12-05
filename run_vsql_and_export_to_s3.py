@@ -30,11 +30,14 @@ try:
 
     # Export to S3
     if os.path.isfile(output_csv):
-        s3 = resource('s3')
-        s3_output = s3_folder_name + out_file_name
-        data = open(output_csv, 'rb')
-        s3.Bucket(EXPORT_BUCKET).put_object(Key=s3_output, Body=data)
-        print("File exported to =>", s3_output)
+        s3 = client('s3')
+        s3_outfile_name = s3_folder_name + out_file_name
+        s3.upload_file(output_csv, EXPORT_BUCKET, s3_outfile_name)
+        print("File exported to =>", s3_outfile_name)
+
+        os.remove(output_csv)
+        print("Deleted local file=>", output_csv)
+
 except subprocess.CalledProcessError as err:
     print("CalledProcessError. Detail =>", err)
     raise
