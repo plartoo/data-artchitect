@@ -10,6 +10,15 @@ DROP TABLE
 DROP TABLE
     IF EXISTS incampaign_temp_unmapped_campaign_gp_names;
 
+INSERT
+INTO
+    gaintheory_us_targetusa_14.incampaign_facebook_log VALUES
+    (
+        'Facebook Extract: STEP 1',
+        NOW(),
+        'Extracting unmapped/new campaign group names'
+    );
+
 CREATE TEMP TABLE
     incampaign_temp_impressions_and_spend_lj_campaign_gp_mappings ON COMMIT PRESERVE ROWS AS
     (
@@ -26,7 +35,6 @@ CREATE TEMP TABLE
             a.fb_date >= (GETDATE()-60)::DATE
     );
 
-
 CREATE TEMP TABLE incampaign_temp_unmapped_campaign_gp_names ON COMMIT PRESERVE ROWS AS
 (
     SELECT DISTINCT
@@ -36,12 +44,21 @@ CREATE TEMP TABLE incampaign_temp_unmapped_campaign_gp_names ON COMMIT PRESERVE 
     WHERE
         fb_mapped_campaign_group_name IS NULL );
 
+INSERT
+INTO
+    gaintheory_us_targetusa_14.incampaign_facebook_log VALUES
+    (
+        'Facebook Extract: STEP 2',
+        NOW(),
+        'Merging unmapped/new campaign group names'
+    );
 
 CREATE TABLE
     IF NOT EXISTS gaintheory_us_targetusa_14.incampaign_facebook_campaign_group_names_to_map
     (
         fb_campaign_group_name VARCHAR(1000)
     );
+
 
 MERGE
 INTO

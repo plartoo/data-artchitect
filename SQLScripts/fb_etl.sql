@@ -9,11 +9,20 @@ Note: As of Dec 6, 2016, this script takes about 1.5 mins to complete.
 ******/
 DROP TABLE
     IF EXISTS gaintheory_us_targetusa_14.incampaign_facebook_last_60_days;
--- Drop temp tables
 DROP TABLE
     IF EXISTS incampaign_temp_fb_mapped_by_campaign_gp_names_and_aggregated;
 DROP TABLE
     IF EXISTS incampaign_temp_dma_to_zip_allocated_and_population_weight_applied;
+
+INSERT
+INTO
+    gaintheory_us_targetusa_14.incampaign_facebook_log VALUES
+    (
+        'Facebook Extract: STEP 3',
+        NOW(),
+        'Aggregating Facebook data that is mapped'
+    );
+
 
 CREATE TEMP TABLE incampaign_temp_fb_mapped_by_campaign_gp_names_and_aggregated ON COMMIT PRESERVE
 ROWS AS
@@ -53,6 +62,15 @@ ROWS AS
         fb_dma_name,
         fb_date );
 
+INSERT
+INTO
+    gaintheory_us_targetusa_14.incampaign_facebook_log VALUES
+    (
+        'Facebook Extract: STEP 4',
+        NOW(),
+        'Applying population weight and DMC to Zip allocation'
+    );
+
 CREATE TEMP TABLE incampaign_temp_dma_to_zip_allocated_and_population_weight_applied ON COMMIT
 PRESERVE ROWS AS
 (
@@ -85,8 +103,17 @@ PRESERVE ROWS AS
     ON
         a.fb_dma_code = b.incampaign_dmac
     WHERE
-        b.incampaign_dmac IS NOT NULL );
---  approx. 23 million rows here
+        b.incampaign_dmac IS NOT NULL ); --  approx. 23 million rows here
+
+INSERT
+INTO
+    gaintheory_us_targetusa_14.incampaign_facebook_log VALUES
+    (
+        'Facebook Extract: STEP 5',
+        NOW(),
+        'Creating IRT table'
+    );
+
 CREATE TABLE
     gaintheory_us_targetusa_14.incampaign_facebook_last_60_days AS
     (
