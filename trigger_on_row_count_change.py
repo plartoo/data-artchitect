@@ -25,23 +25,8 @@ def send_dev_email(table_name, row_count, cmd_used, status_msg):
     print("Admin notification email sent.")
 
 
-def send_notification_email(recipient, subject, body):
-    # subject = "InCampaign Facebook: new campaign group name are extracted (Follow up action needed)"
-    # body = """
-    # <p>Our python script just extracted campaign group names from new fb data loaded to Vault recently.</p>
-    # <p>To run the rest of the ETL process, please do the followings:
-    # <ol>
-    # <li>download <b>{0}</b> table from Vertica backend</li>
-    # <li>create mappings for above campaign names in a <b>CSV file</b></li>
-    # <li>upload that updated mapping CSV file using 'InCampaign_Facebook_Campaign_Group_Name_Mapping' feed in DataVault</li>
-    # <li><b>TRUNCATE</b> the {0} table in the Vertica backend</li>
-    # <li><b>UPDATE</b> the <b>`run`</b> field in <b>incampaign_fb_switch</b> table to <b>'1'</b></li>
-    # </ol>
-    # </p><br>
-    # <p><strong style="color: red;">NOTE: If you fail to TRUNCATE and UPDATE as directed above, the second
-    # part of facebook data will not be processed.</strong></p>
-    # """.format(table_name)
-    Mailer().send_email(recipient, subject, body)
+def send_completion_email(recipients, subject, body):
+    Mailer().send_email(recipients, subject, body)
     print("Completion email sent.")
 
 
@@ -102,16 +87,6 @@ def trigger_on_row_count_change(table_and_actions):
     schema_name = 'gaintheory_us_targetusa_14'
     row_cnt_table = 'incampaign_row_count'
 
-    # table_and_actions = {
-    #     'incampaign_facebook_impressions_and_spend':
-    #         [{'cmd': ['python', ROOT_FOLDER+'run_vsql.py', ROOT_FOLDER+'fb_extract_unmapped_cmp_gp_names.sql'],
-    #           'send_msg_on_complete': {'subject': 'blah',
-    #                                    'body': 'blahblah',
-    #                                    'recipients': ADMIN_EMAIL_RECIPIENTS}
-    #           },
-    #          ],
-    # }
-
     try:
         with vertica_python.connect(**conn_info) as connection:
             print("Checking row count...")
@@ -149,7 +124,10 @@ def trigger_on_row_count_change(table_and_actions):
                                         send_dev_email(table, new_obsvn_cnt, cmd, output)
 
                                         if 'send_msg_on_complete' in proc:
-                                            send_notification_email(table, new_obsvn_cnt, cmd, output)
+                                            subject = proc['send_msg_on_complete']['subject']
+                                            body = proc['send_msg_on_complete']['body']
+                                            recipients = proc['send_msg_on_complete']['recipients']
+                                            send_completion_email(recipients, subject, body)
                                     except Exception as err:
                                         send_error_email(err)
                         else: # Row count for the table has changed. Enter a new entry/row for this.
