@@ -34,7 +34,7 @@ def main():
                   'notify_on_complete': {
                       'subject': 'InCampaign Facebook: new campaign group names are extracted (Follow up action needed)',
                       'body': get_msg_body_for_completion(),
-                      'recipients': ADMIN_EMAIL_RECIPIENTS} #### TODO: CHANGE THIS back to TEAM EMAIL
+                      'recipients': NOTIFICATION_EMAIL_RECIPIENTS}
                  }
              ]
     }
