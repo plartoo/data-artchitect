@@ -1,5 +1,14 @@
 import vertica_python
 
+
+class RowCountInValid(Exception):
+    pass
+
+
+class ErrorInUpdatingRowCountTableEntry(Exception):
+    pass
+
+
 def table_exists(cursor, table_name, schema_name):
     sql = ('SELECT * FROM tables WHERE table_name=\'' + table_name + '\' and table_schema=\'' + schema_name + '\';')
     try:
