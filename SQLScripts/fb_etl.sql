@@ -4,27 +4,16 @@ spend data allocated using population weight. That weighted data is
 unfolded into ziplevel using dma_to_zip mapping.
 Author: Phyo Thiha
 Last Modified: Dec 6, 2016
-
 Note: As of Dec 6, 2016, this script takes about 1.5 mins to complete.
 ******/
 DROP TABLE
     IF EXISTS gaintheory_us_targetusa_14.incampaign_facebook_last_60_days;
 DROP TABLE
-    IF EXISTS incampaign_temp_fb_mapped_by_campaign_gp_names_and_aggregated;
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_temp_fb_mapped_by_campaign_gp_names_and_aggregated;
 DROP TABLE
-    IF EXISTS incampaign_temp_dma_to_zip_allocated_and_population_weight_applied;
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_temp_dma_to_zip_allocated_and_population_weight_applied;
 
-INSERT
-INTO
-    gaintheory_us_targetusa_14.incampaign_facebook_log VALUES
-    (
-        'Facebook Extract: STEP 3',
-        NOW(),
-        'Aggregating Facebook data that is mapped'
-    );
-
-
-CREATE TEMP TABLE incampaign_temp_fb_mapped_by_campaign_gp_names_and_aggregated ON COMMIT PRESERVE
+CREATE TEMP TABLE gaintheory_us_targetusa_14.incampaign_temp_fb_mapped_by_campaign_gp_names_and_aggregated ON COMMIT PRESERVE
 ROWS AS
 (
     SELECT
@@ -32,21 +21,21 @@ ROWS AS
         a.fb_dma_code,
         a.fb_dma_name,
         a.fb_date,
-        SUM(a.fb_total_impressions)           AS fb_total_impressions,
---        SUM(a.fb_mobile_impressions)          AS fb_mobile_impressions,
---        SUM(a.fb_desktop_impressions)         AS fb_desktop_impressions,
---        SUM(a.fb_newsfeed_impressions)        AS fb_newsfeed_impressions,
---        SUM(a.fb_rhs_impressions)             AS fb_rhs_impressions,
---        SUM(a.fb_instagram_impressions)       AS fb_instagram_impressions,
---        SUM(a.fb_audiencenetwork_impressions) AS fb_audiencenetwork_impressions,
-        SUM(a.fb_total_spend)                 AS fb_total_spend
---        ,
---        SUM(a.fb_mobile_spend)                AS fb_mobile_spend,
---        SUM(a.fb_desktop_spend)               AS fb_desktop_spend,
---        SUM(a.fb_newsfeed_spend)              AS fb_newsfeed_spend,
---        SUM(a.fb_rhs_spend)                   AS fb_rhs_spend,
---        SUM(a.fb_instagram_spend)             AS fb_instagram_spend,
---        SUM(a.fb_audiencenetwork_spend)       AS fb_audiencenetwork_spend
+        SUM(a.fb_total_impressions) AS fb_total_impressions,
+        --        SUM(a.fb_mobile_impressions)          AS fb_mobile_impressions,
+        --        SUM(a.fb_desktop_impressions)         AS fb_desktop_impressions,
+        --        SUM(a.fb_newsfeed_impressions)        AS fb_newsfeed_impressions,
+        --        SUM(a.fb_rhs_impressions)             AS fb_rhs_impressions,
+        --        SUM(a.fb_instagram_impressions)       AS fb_instagram_impressions,
+        --        SUM(a.fb_audiencenetwork_impressions) AS fb_audiencenetwork_impressions,
+        SUM(a.fb_total_spend) AS fb_total_spend
+        --        ,
+        --        SUM(a.fb_mobile_spend)                AS fb_mobile_spend,
+        --        SUM(a.fb_desktop_spend)               AS fb_desktop_spend,
+        --        SUM(a.fb_newsfeed_spend)              AS fb_newsfeed_spend,
+        --        SUM(a.fb_rhs_spend)                   AS fb_rhs_spend,
+        --        SUM(a.fb_instagram_spend)             AS fb_instagram_spend,
+        --        SUM(a.fb_audiencenetwork_spend)       AS fb_audiencenetwork_spend
     FROM
         gaintheory_us_targetusa_14.incampaign_facebook_impressions_and_spend AS a
     LEFT JOIN
@@ -61,17 +50,16 @@ ROWS AS
         fb_dma_code,
         fb_dma_name,
         fb_date );
-
 INSERT
 INTO
     gaintheory_us_targetusa_14.incampaign_facebook_log VALUES
     (
-        'Facebook Extract: STEP 4',
+        'Facebook Extract: STEP 3',
         NOW(),
-        'Applying population weight and DMC to Zip allocation'
+        'Aggregated Facebook data that is already mapped'
     );
 
-CREATE TEMP TABLE incampaign_temp_dma_to_zip_allocated_and_population_weight_applied ON COMMIT
+CREATE TEMP TABLE gaintheory_us_targetusa_14.incampaign_temp_dma_to_zip_allocated_and_population_weight_applied ON COMMIT
 PRESERVE ROWS AS
 (
     SELECT
@@ -81,37 +69,43 @@ PRESERVE ROWS AS
         a.fb_dma_name,
         a.fb_date,
         b.incampaign_wt_population,
---        (b.incampaign_wt_population * a.fb_mobile_impressions)          AS fb_mobile_impressions,
---        (b.incampaign_wt_population * a.fb_desktop_impressions)         AS fb_desktop_impressions,
---        (b.incampaign_wt_population * a.fb_newsfeed_impressions)        AS fb_newsfeed_impressions,
---        (b.incampaign_wt_population * a.fb_rhs_impressions)             AS fb_rhs_impressions,
---        (b.incampaign_wt_population * a.fb_instagram_impressions)       AS fb_instagram_impressions,
---        (b.incampaign_wt_population * a.fb_audiencenetwork_impressions) AS
---                                                                 fb_audiencenetwork_impressions,
-        (b.incampaign_wt_population * a.fb_total_impressions)     AS fb_total_impressions,
---        (b.incampaign_wt_population * a.fb_mobile_spend)          AS fb_mobile_spend,
---        (b.incampaign_wt_population * a.fb_desktop_spend)         AS fb_desktop_spend,
---        (b.incampaign_wt_population * a.fb_newsfeed_spend)        AS fb_newsfeed_spend,
---        (b.incampaign_wt_population * a.fb_rhs_spend)             AS fb_rhs_spend,
---        (b.incampaign_wt_population * a.fb_instagram_spend)       AS fb_instagram_spend,
---        (b.incampaign_wt_population * a.fb_audiencenetwork_spend) AS fb_audiencenetwork_spend,
-        (b.incampaign_wt_population * a.fb_total_spend)           AS fb_total_spend
+        --        (b.incampaign_wt_population * a.fb_mobile_impressions)          AS
+        -- fb_mobile_impressions,
+        --        (b.incampaign_wt_population * a.fb_desktop_impressions)         AS
+        -- fb_desktop_impressions,
+        --        (b.incampaign_wt_population * a.fb_newsfeed_impressions)        AS
+        -- fb_newsfeed_impressions,
+        --        (b.incampaign_wt_population * a.fb_rhs_impressions)             AS
+        -- fb_rhs_impressions,
+        --        (b.incampaign_wt_population * a.fb_instagram_impressions)       AS
+        -- fb_instagram_impressions,
+        --        (b.incampaign_wt_population * a.fb_audiencenetwork_impressions) AS
+        --
+        -- fb_audiencenetwork_impressions,
+        (b.incampaign_wt_population * a.fb_total_impressions) AS fb_total_impressions,
+        --        (b.incampaign_wt_population * a.fb_mobile_spend)          AS fb_mobile_spend,
+        --        (b.incampaign_wt_population * a.fb_desktop_spend)         AS fb_desktop_spend,
+        --        (b.incampaign_wt_population * a.fb_newsfeed_spend)        AS fb_newsfeed_spend,
+        --        (b.incampaign_wt_population * a.fb_rhs_spend)             AS fb_rhs_spend,
+        --        (b.incampaign_wt_population * a.fb_instagram_spend)       AS fb_instagram_spend,
+        --        (b.incampaign_wt_population * a.fb_audiencenetwork_spend) AS
+        -- fb_audiencenetwork_spend,
+        (b.incampaign_wt_population * a.fb_total_spend) AS fb_total_spend
     FROM
-        incampaign_temp_fb_mapped_by_campaign_gp_names_and_aggregated AS a
+        gaintheory_us_targetusa_14.incampaign_temp_fb_mapped_by_campaign_gp_names_and_aggregated AS a
     LEFT JOIN
-        incampaign_dma_to_zipcode_and_population_weight AS b
+        gaintheory_us_targetusa_14.incampaign_dma_to_zipcode_and_population_weight AS b
     ON
         a.fb_dma_code = b.incampaign_dmac
     WHERE
         b.incampaign_dmac IS NOT NULL ); --  approx. 23 million rows here
-
 INSERT
 INTO
     gaintheory_us_targetusa_14.incampaign_facebook_log VALUES
     (
-        'Facebook Extract: STEP 5',
+        'Facebook Extract: STEP 4',
         NOW(),
-        'Creating IRT table'
+        'Applied population weight and DMC to Zip allocation'
     );
 
 CREATE TABLE
@@ -127,7 +121,7 @@ CREATE TABLE
             fb_date::DATE                 AS Period,
             SUM(fb_total_impressions)     AS VariableValue
         FROM
-            incampaign_temp_dma_to_zip_allocated_and_population_weight_applied
+            gaintheory_us_targetusa_14.incampaign_temp_dma_to_zip_allocated_and_population_weight_applied
         GROUP BY
             Geography,
             Product,
@@ -147,7 +141,7 @@ CREATE TABLE
             fb_date::DATE                 AS Period,
             SUM(fb_total_spend)           AS VariableValue
         FROM
-            incampaign_temp_dma_to_zip_allocated_and_population_weight_applied
+            gaintheory_us_targetusa_14.incampaign_temp_dma_to_zip_allocated_and_population_weight_applied
         GROUP BY
             Geography,
             Product,
@@ -156,4 +150,13 @@ CREATE TABLE
             Outlet,
             Creative,
             Period
-    ); --  approx. 43 million rows here
+    );
+--  approx. 43 million rows here
+INSERT
+INTO
+    gaintheory_us_targetusa_14.incampaign_facebook_log VALUES
+    (
+        'Facebook Extract: STEP 5',
+        NOW(),
+        'Created IRT table'
+    );
