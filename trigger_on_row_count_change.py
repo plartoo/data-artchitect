@@ -5,14 +5,6 @@ from mailer import Mailer
 import subprocess
 
 
-class RowCountInValid(Exception):
-    pass
-
-
-class ErrorInUpdatingRowCountTableEntry(Exception):
-    pass
-
-
 def send_dev_email(table_name, row_count, cmd_used, status_msg):
     status_msg = str(status_msg).replace('\\r\\n', '<br>')
     subject = "Row count has changed for: " + table_name
@@ -25,9 +17,9 @@ def send_dev_email(table_name, row_count, cmd_used, status_msg):
     print("Admin notification email sent.")
 
 
-def send_completion_email(recipients, subject, body):
+def send_notification_email(recipients, subject, body):
     Mailer().send_email(recipients, subject, body)
-    print("Completion email sent.")
+    print("Notification email sent.")
 
 
 def send_error_email(error_msg):
@@ -123,11 +115,11 @@ def trigger_on_row_count_change(table_and_actions):
                                                                          stderr=subprocess.PIPE)
                                         send_dev_email(table, new_obsvn_cnt, cmd, output)
 
-                                        if 'send_msg_on_complete' in proc:
-                                            subject = proc['send_msg_on_complete']['subject']
-                                            body = proc['send_msg_on_complete']['body']
-                                            recipients = proc['send_msg_on_complete']['recipients']
-                                            send_completion_email(recipients, subject, body)
+                                        if 'notify_on_complete' in proc:
+                                            subject = proc['notify_on_complete']['subject']
+                                            body = proc['notify_on_complete']['body']
+                                            recipients = proc['notify_on_complete']['recipients']
+                                            send_notification_email(recipients, subject, body)
                                     except Exception as err:
                                         send_error_email(err)
                         else: # Row count for the table has changed. Enter a new entry/row for this.
