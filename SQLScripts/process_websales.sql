@@ -10,15 +10,6 @@ INTO
         'Dropped old/existing last_60_days table'
     );
 
-INSERT
-INTO
-    gaintheory_us_targetusa_14.incampaign_websales_log VALUES
-    (
-        'Websales: STEP 2 START',
-        NOW(),
-        'Starting transform...'
-    );
-
 CREATE TABLE
     gaintheory_us_targetusa_14.incampaign_websales_last_60_days AS -- ~ 4-5 million rows
     (
@@ -49,7 +40,7 @@ INSERT
 INTO
     gaintheory_us_targetusa_14.incampaign_websales_log VALUES
     (
-        'Websales: STEP 2 END',
+        'Websales: STEP 2',
         NOW(),
         'Finished transform. Created table named incampaign_websales_last_60_days'
     );
