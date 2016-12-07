@@ -30,11 +30,11 @@ def main():
     table_and_actions = {
         'incampaign_facebook_impressions_and_spend':
             [
-                {'cmd': ['python', ROOT_FOLDER+'run_vsql.py', ROOT_FOLDER+'fb_extract_unmapped_cmp_gp_names.sql'],
-                  'send_msg_on_complete': {
+                {'cmd': ['python', ROOT_FOLDER+'run_vsql.py', SQL_SCRIPT_FOLDER+'fb_extract_gp_names.sql'],
+                  'notify_on_complete': {
                       'subject': 'InCampaign Facebook: new campaign group names are extracted (Follow up action needed)',
                       'body': get_msg_body_for_completion(),
-                      'recipients': ADMIN_EMAIL_RECIPIENTS} #### CHANGE THIS back to TEAM EMAIL
+                      'recipients': ADMIN_EMAIL_RECIPIENTS} #### TODO: CHANGE THIS back to TEAM EMAIL
                  }
              ]
     }
