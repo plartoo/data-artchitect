@@ -6,14 +6,14 @@ from vertica_utils import *
 from mailer import Mailer
 
 
-def send_notification_email(folder_name, file_name):
-    subject = "New data file found in S3: " + file_name
+def send_notification_email(folder_name, file_names, feed_name):
+    subject = "New file found in S3 folder: " + folder_name
     body = """
     <p>The following file(s) <br><strong style="color: red;">{1}</strong><br> is(are) found in S3 folder named:
     <br><b>{0}</b><br></p>
-    <p>Please load it(them) via DataVault or take some appropriate action. Thank you.</p><br><br>
+    <p>Please load it(them) to DataVault feed, <b>{2}</b>, or take some appropriate action.</p><br><br>
     <p>If you think this email should no longer be sent (to you), please let Phyo know.</p>
-    """.format(folder_name, file_name)
+    """.format(folder_name, file_names, feed_name)
     Mailer().send_email(NOTIFICATION_EMAIL_RECIPIENTS, subject, body)
     print("New file found email successfully sent.")
 
@@ -60,11 +60,14 @@ def main():
     schema_name = 'gaintheory_us_targetusa_14'
 
     # Note: make sure to configure auth credentials as shown here: https://boto3.readthedocs.io/en/latest/guide/quickstart.html
-    bucket = 'diap.prod.us-east-1.target'
-    s3_folders_to_check = ['Facebook/',
-                           'RenTrak/SpotID/','RenTrak/ZipCode/',
-                           'TargetInbound/StoreSales/', 'TargetInbound/WebSales/',
-                           'TargetInbound/MondayStoreSales/', 'TargetInbound/MondayWebSales/']
+    s3_folders_and_feeds = {'Facebook/': 'InCampaign_Facebook_Impressions_And_Spend',
+                           'RenTrak/SpotID/': 'Incampaign_Rentrak_SpotID',
+                           'RenTrak/ZipCode/': 'Incampaign_Rentrak_ZipCode',
+                           'TargetInbound/StoreSales/': 'InCampaign_StoreSales_Zipcode',
+                           'TargetInbound/WebSales/': 'InCampaign_WebSales_Zipcode',
+                           'TargetInbound/MondayStoreSales/': 'InCampaign_StoreSales_Zipcode_Monday',
+                            'TargetInbound/MondayWebSales/': 'InCampaign_WebSales_Zipcode_Monday'
+                            }
 
     try:
         with vertica_python.connect(**conn_info) as vertica_conn:
@@ -72,7 +75,7 @@ def main():
             cursor = vertica_conn.cursor()
             cursor.execute(create_record_table(file_seen_table, schema_name))
 
-            for folder in s3_folders_to_check:
+            for folder, feed in s3_folders_and_feeds.items():
                 new_files = []
                 for f_name in list_key_names(folder):
                     if not file_exists_in_record(cursor, f_name, folder, file_seen_table, schema_name):
@@ -81,7 +84,7 @@ def main():
                         cursor.execute(record_table_name(file_seen_table, schema_name, folder, f_name))
 
                 if len(new_files) > 0:
-                    send_notification_email(folder, '<br>'.join(new_files))
+                    send_notification_email(folder, '<br>'.join(new_files), feed)
 
         print("Finished checking new files in S3...")
     except vertica_python.errors.QueryError as err:
