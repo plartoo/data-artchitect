@@ -1,7 +1,10 @@
 import smtplib
 
+from email import encoders
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from os.path import basename
 
 from account_info import *
 
@@ -12,7 +15,7 @@ class Mailer:
         self.gmail_accnt = GMAIL_ACCNT
         self.pwd = GMAIL_PWD
 
-    def send_email(self, recipients, subject, body):
+    def send_email(self, recipients, subject, body, attachment=None):
         sender = self.gmail_accnt # FROM
         pwd = self.pwd
         to = SEPARATOR.join(recipients) if type(recipients) is list else recipients
@@ -22,6 +25,13 @@ class Mailer:
         msg['From'] = sender
         msg['To'] = to
         msg.attach(MIMEText(body, 'html'))
+
+        if attachment:
+            part = MIMEBase('application', "octet-stream")
+            part.set_payload(open(attachment, "rb").read())
+            encoders.encode_base64(part)
+            part.add_header('Content-Disposition', 'attachment; filename="' + basename(attachment) + '"')
+            msg.attach(part)
 
         try:
             server = smtplib.SMTP("smtp.gmail.com", 587)
