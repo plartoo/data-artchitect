@@ -10,12 +10,13 @@ def notify_for_manual_mapping(file, table, process):
         <p>Our python script extracted new creative names from keepingtrac data.</p>
         <p>To run the rest of the RenTrak ETL process smoothly, please do the followings:
         <ol>
-        <li>download <b>{0}</b> file from S3 location: <b>diap.prod.us-east-1.target/RenTrak/CreativeCleaned</b></li>
-        <li>fill up mapings for kt_creative in column C (kt_creative_clean) of that file</b></li>
-        <li>upload that data back to S3 location above
-
-        (use Python script provided at the end of this email or DB Visualizer)</li>
-        <li>run this SQL in Vertica backend: <br>
+        <li>download the attached file, <b>{0}</b>, from this email or directly from S3 location:
+        <b>diap.prod.us-east-1.target/RenTrak/CreativeCleaned</b></li>
+        <li>fill up kt_creative mappings under column C (kt_creative_clean) in that file</b></li>
+        <li>upload the file with new mappings to the S3 location above (delete any old file that exists in the S3 folder)</li>
+        <li>run this feed in DataVault: InCampaign KT Creative Mappings</li>
+        <li><strong style="color: red;">AFTER the DataVault successfully loaded the new mappings</strong>,
+            run this SQL in Vertica backend: <br>
             <b>
             UPDATE gaintheory_us_targetusa_14.incampaign_process_switches
             SET run = 1
@@ -26,39 +27,17 @@ def notify_for_manual_mapping(file, table, process):
         </p>
         <p><strong style="color: red;">NOTE: If you fail to do as directed above, the second part of RenTrak processing
         may not produce correct results.</strong></p>
-        <p> You can use Python code (reformat and fill out necessary variable values to run successfully)
-        similar to example shown below to upload the mapping file back to the Vertica table: </p>
-        <p>
-        <code>
-            # Vertica access details<br>
-            vertica_user = # enter vertica user name here<br>
-            vertica_pass = # enter vertica password here<br>
-            data_folder = # enter the name of the folder where you saved the mapping file; e.g., 'C:/Users/Totoro/Desktop/RenTrakMapping'<br>
-            kt_cleaned = # enter name of file on your computer that you updated mapping for; e.g., kt_cleaned_2016-11-01_2016-09-01.xlsx<br>
-            <br>
-            # Vertica connection string<br>
-            conn_info = # enter vertica connection information like server address, port number, etc.<br>
-            <br>
-            creation_query = \"\"\"<br>
-                DROP TABLE IF EXISTS gaintheory_us_targetusa_14.{1};<br>
-                CREATE TABLE gaintheory_us_targetusa_14.{1} (<br>
-                        kt_creative_id   varchar(150),<br>
-                        kt_creative_clean varchar(1500)<br>
-                );<br>
-            \"\"\"<br>
-            <br>
-            insert_query = \"\"\"<br>
-                INSERT INTO gaintheory_us_targetusa_14.{1}(kt_creative_id, kt_creative_clean) VALUES ('%s', '%s')<br>
-            \"\"\"<br>
-            <br>
-            with vertica_python.connect(**conn_info) as connection:<br>
-                cur = connection.cursor()<br>
-                cur.execute(creation_query)<br>
-                for row in pd.read_excel(os.path.join(data_folder, kt_cleaned), sheetname='creative_cleaning').iterrows():<br>
-                    cur.execute(insert_query % (row[1]['kt_creative_id'], row[1]['kt_creative_clean']))<br>
-                connection.commit()<br>
-        </code></p>
         """.format(file, table, process)
+    return email_str
+
+
+def notify_no_new_mapping_found():
+    email_str = """
+        <p>Python script does not find any new creative names from keepingtrac data.
+        Stage 2 of processing RenTrak data itself will begin when we load new data to RenTrak tables.
+        </p>
+        <p><b>No further action on your part is needed.</b></p>
+        """
     return email_str
 
 
@@ -80,18 +59,34 @@ def vertica_extract(query, columns, index=None):
             return results
 
 
+def set_flag_value(table_name, schema_name, flag_name, value):
+    return """
+    UPDATE {1}.{0}
+    SET run = {3}
+    WHERE process_name = '{2}';
+    COMMIT;
+    """.format(table_name, schema_name, flag_name, value)
+
+
+def set_lock(table_name, schema_name, flag_name, value):
+    with vertica_python.connect(**conn_info) as connection:
+        cur = connection.cursor()
+        cur.execute(set_flag_value(table_name, schema_name, flag_name, value))
+
+
 def main():
-    # Analysis covers last six weeks data
+    # Extract previous six weeks' data
     today = datetime.date.today()
     start_date = (today - datetime.timedelta(weeks=6, days=1)).strftime('%Y-%m-%d')
     end_date = (today - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-    output_table = 'incampaign_kt_creative_cleaned'
+    schema_name = 'gaintheory_us_targetusa_14'
+    flag_table = 'incampaign_process_switches'
+    output_table = 'incampaign_kt_creative_mappings'
     flag = 'kt_creative_cleaned'
 
     # Location of sources and destination files
     output_folder = ROOT_FOLDER + 'RenTrak'
     output_file = 'kt_cleaned_%s_%s.xlsx' % (start_date, end_date)
-    # sheet_name = 'creative_cleaning'
     s3_folder_name = 'RenTrak/CreativeCleaned/'
 
     if not os.path.exists(output_folder):
@@ -101,13 +96,13 @@ def main():
     # Step 1: Download all possible KT combinations and current matching cleaned creative names
     extract_query = """
         SELECT Air_ISCI as kt_creative_id, Cmml_Title AS kt_creative, kt_creative_clean
-        FROM gaintheory_us_targetusa_14.Keepingtrac_backup a
-        LEFT JOIN gaintheory_us_targetusa_14.{0} b
+        FROM {1}.Keepingtrac_backup a
+        LEFT JOIN {1}.{0} b
         ON a.Air_ISCI = b.kt_creative_id
         WHERE Air_ISCI IS NOT NULL
         GROUP BY a.Air_ISCI, a.Cmml_Title, kt_creative_clean
         ORDER BY kt_creative_id
-    """.format(output_table)
+    """.format(output_table, schema_name)
 
     df = vertica_extract(
         extract_query,
@@ -117,10 +112,12 @@ def main():
     unmapped_creatives = sum(x == 'nan' for x in df['kt_creative_clean'])
 
     if unmapped_creatives == 0: ## TODO: change back to > 0
-        print("Generating unmapped kt_creatives for date ranging between", start_date, "and", end_date)
+        print("Some unmapped kt_creatives found")
+        # Take a lock in the process table so that part 2 cannot be run
+        set_lock(flag_table, schema_name, flag, 0)
+
         df.to_excel(
             os.path.join(output_folder, output_file),
-            #sheet_name=sheet_name,
             index=False
         )
 
@@ -132,46 +129,25 @@ def main():
             s3.upload_file(file_to_export, EXPORT_BUCKET, s3_outfile_name)
             print("File exported to S3 location=>", s3_outfile_name)
 
-            #os.remove(file_to_export)
-            print("Deleted local file=>", file_to_export)
-
         # Send email to tell the team to start manual mapping
         subject = "RenTrak automated processing: new kt_creatives need to be mapped"
         body = notify_for_manual_mapping(output_file, output_table, 'kt_creative_cleaned')
         send_notification_email(ADMIN_EMAIL_RECIPIENTS, subject, body, file_to_export) # TODO: update recipients
         print("Notified the team to add manual mapping")
+
+        os.remove(file_to_export)
+        print("Deleted local file=>", file_to_export)
+
     else:
         print("Everything is mapped")
+        print("Releasing lock:", flag, "so that the second part of RenTrak processing can proceed")
+        set_lock(flag_table, schema_name, flag, 1)
 
-        # create_table = """
-        #     DROP TABLE IF EXISTS gaintheory_us_targetusa_14.{0};
-        #     CREATE TABLE gaintheory_us_targetusa_14.{0} (
-        #             kt_creative_id   varchar(150),
-        #             kt_creative_clean varchar(1500)
-        #     );
-        # """.format(output_table)
-        #
-        # insert_mappings = """
-        #     INSERT INTO gaintheory_us_targetusa_14.{0}(kt_creative_id, kt_creative_clean) VALUES ('%s', '%s')
-        # """.format(output_table)
-        # # import pdb
-        # # pdb.set_trace()
-        # with vertica_python.connect(**conn_info) as connection:
-        #     cur = connection.cursor()
-        #     cur.execute(create_table)
-        #     for row in pd.read_excel(os.path.join(output_folder, output_file)).iterrows():#sheetname=sheet_name).iterrows():
-        #         cur.execute(insert_mappings % (row[1]['kt_creative_id'], row[1]['kt_creative_clean']))
-        #     connection.commit()
-        # print("New mapping data inserted to the table:", output_table)
-
-        # TODO: reset flag to 1
-        print("Set flag:", flag, "to 1 so that the second part of RenTrak processing can proceed")
-
-        # # insert, set flag to 1 and send email notification about being cleaned
-        # subject = "RenTrak automated processing: new kt_creatives need to be mapped"
-        # body = notify_for_manual_mapping(output_file, output_table, 'kt_creative_cleaned')
-        # send_notification_email(ADMIN_EMAIL_RECIPIENTS, subject, body) # TODO: update recipients
-        print("Notified the team that mappings are added")
+        # insert, set flag to 1 and send email notification about being cleaned
+        subject = "RenTrak processing stage 1: kt_creatives are all mapped. Stage 2 will automatically commence."
+        body = notify_no_new_mapping_found()
+        send_notification_email(ADMIN_EMAIL_RECIPIENTS, subject, body) # TODO: update recipients
+        print("Notified the team that no further action on their part is required")
 
 if __name__ == "__main__":
     main()
