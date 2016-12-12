@@ -1,3 +1,10 @@
+"""
+TODO: update descriptions
+Usage:
+> python my_chron.py example_script_to_run.py 3600
+to run 'example_script_to_run.py' every hour
+"""
+
 import os
 import sys
 import time
