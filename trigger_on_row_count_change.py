@@ -74,8 +74,8 @@ def run_query_to_modify_row_cnt_table(cursor, query):
         })
 
 
-def trigger_on_row_count_change(table_and_actions):
-    trigger_script_when_cnt_reach = 3
+def trigger_on_row_count_change(table_and_actions, obsvn_cnt=3):
+    trigger_script_when_cnt_reach = obsvn_cnt
     schema_name = 'gaintheory_us_targetusa_14'
     row_cnt_table = 'incampaign_row_count'
 
