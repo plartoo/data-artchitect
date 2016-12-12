@@ -142,7 +142,7 @@ def send_completion_email(table_name):
     <p>The final transformed table is written as <b>{0}</b> in Vertica backend.</p>
     <p>Next, we will attempt to move that data into S3.</p>
     """.format(table_name)
-    Mailer().send_email(NOTIFICATION_EMAIL_RECIPIENTS, subject, body)
+    Mailer().send_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
     print("Successful completion email sent.")
 
 

@@ -15,7 +15,7 @@ def send_dev_email(flag_name, trigger_val, cmd_used, status_msg):
     <p>we ran: {2} </p><br>
     <p>That finished with the following message: {3}</p>
     """.format(flag_name, trigger_val, cmd_used, status_msg)
-    Mailer().send_email(ADMIN_EMAIL_RECIPIENTS, subject, body)
+    Mailer().send_email(DEV_EMAIL_RECIPIENTS, subject, body)
     print("Admin notification email sent.")
 
 

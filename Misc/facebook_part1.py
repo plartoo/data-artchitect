@@ -92,7 +92,7 @@ def send_completion_email(table_name):
     <li>finally, upload that updated mapping file via 'InCampaign_Facebook_Campaign_Group_Name_Mapping' feed in DataVault.</li></p>
     <p>After that, <strong style="color: red;">MAKE SURE TO empty (truncate) the {0} table</strong>.</p>
     """.format(table_name)
-    Mailer().send_email(NOTIFICATION_EMAIL_RECIPIENTS, subject, body)
+    Mailer().send_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
     print("Successful completion email sent.")
 
 def send_error_email(log_table, error_msg):

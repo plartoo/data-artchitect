@@ -39,7 +39,7 @@ def main():
                                         'reminder': {
                                             'subject': "Please truncate table(s): " + str(tables_to_truncate),
                                             'body': remind_to_truncate_table(str(tables_to_truncate), flag_name),
-                                            'recipients': NOTIFICATION_EMAIL_RECIPIENTS
+                                            'recipients': ONSHORE_EMAIL_RECIPIENTS
                                         }},
                             'cmd': ['python', ROOT_FOLDER + 'run_vsql.py', SQL_SCRIPT_FOLDER + 'fb_etl.sql']
                         },

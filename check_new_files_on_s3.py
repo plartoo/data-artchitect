@@ -14,7 +14,7 @@ def send_notification_email(folder_name, file_names, feed_name):
     <p>Please load it(them) to DataVault feed, <b>{2}</b>, or take some appropriate action.</p><br><br>
     <p>If you think this email should no longer be sent (to you), please let Phyo know.</p>
     """.format(folder_name, file_names, feed_name)
-    Mailer().send_email(NOTIFICATION_EMAIL_RECIPIENTS, subject, body)
+    Mailer().send_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
     print("New file found email successfully sent.")
 
 
