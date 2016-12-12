@@ -25,7 +25,7 @@ def main():
                 {'cmd': ['python', ROOT_FOLDER + 'run_vsql_and_export_to_s3.py',
                          SQL_SCRIPT_FOLDER + 'export_storesales.sql', 'StoreSales/', s3_folder, 'storesales'],
                 'notify_on_complete': {
-                    'subject': 'Incampaign Storesales processed: please make sure that the Datamart completes ETL process',
+                    'subject': 'Incampaign Storesales processed: please make sure that the Datamart completes the ETL process',
                     'body': get_msg_body_for_completion(s3_folder, data_source_name),
                     'recipients': ONSHORE_EMAIL_RECIPIENTS + OFFSHORE_EMAIL_RECIPIENTS}
                 }
