@@ -106,7 +106,7 @@ def main():
     # Step 1: Download all possible KT combinations and current matching cleaned creative names
     extract_query = """
         SELECT Air_ISCI as kt_creative_id, Cmml_Title AS kt_creative, kt_creative_clean
-        FROM {1}.Keepingtrac_backup a
+        FROM {1}.keepingtrac a
         LEFT JOIN {1}.{0} b
         ON a.Air_ISCI = b.kt_creative_id
         WHERE Air_ISCI IS NOT NULL
