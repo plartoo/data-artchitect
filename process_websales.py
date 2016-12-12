@@ -3,16 +3,19 @@ from trigger_on_row_count_change import *
 
 def get_msg_body_for_completion(s3_export_folder, data_source_name):
     return """
-        <p>Python script extracted the data from Vault and exported to this S3 location:<b>{0}</b></p>
-        <p>To the offshore team, please make sure that the latest file in that folder
-        (marked with the timestamp of this email's date) is processed by this Data Source: <b>{1}</b>
-        <strong style="color: red;">up to the 'Transformed' step (all missing values added and green)</strong></p>
+        <p>Python script extracted the data from Vault and exported to this S3 location: <b>{0}</b></p>
+        <p>To the offshore team, please make sure that this latest file in the above S3 folder
+        (marked with the timestamp of this email's date) is processed via this Data Source: <br>
+        <b>{1}</b>
+        <br>
+        <strong style="color: red;">up to the 'Transformed' step (that is, all missing values added and 'Transformed'
+        status should be green)</strong></p>
         """.format(s3_export_folder, data_source_name)
 
 
 def main():
     s3_folder = 'FilesForDatamart/WebSales/'
-    data_source_name = 'InCampaign Web Sales'
+    data_source_name = 'InCampaign Web Sales (DM 3128)'
     table_and_actions = {
         'incampaign_websales_zipcode':
             [

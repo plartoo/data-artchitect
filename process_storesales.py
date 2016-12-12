@@ -3,16 +3,19 @@ from trigger_on_row_count_change import *
 
 def get_msg_body_for_completion(s3_export_folder, data_source_name):
     return """
-        <p>Python script extracted the data from Vault and exported to this S3 location:<b>{0}</b></p>
-        <p>To the offshore team, please make sure that the latest file in that folder
-        (marked with the timestamp of this email's date) is processed by this Data Source: <b>{1}</b>
-        <strong style="color: red;">up to the 'Transformed' step (all missing values added and green)</strong></p>
+        <p>Python script extracted the data from Vault and exported to this S3 location: <b>{0}</b></p>
+        <p>To the offshore team, please make sure that this latest file in the above S3 folder
+        (marked with the timestamp of this email's date) is processed via this Data Source: <br>
+        <b>{1}</b>
+        <br>
+        <strong style="color: red;">up to the 'Transformed' step (that is, all missing values added and 'Transformed'
+        status should be green)</strong></p>
         """.format(s3_export_folder, data_source_name)
 
 
 def main():
     s3_folder = 'FilesForDatamart/StoreSales/'
-    data_source_name = 'InCampaign Store Sales'
+    data_source_name = 'InCampaign Store Sales (DM 3128)'
     table_and_actions = {
         'incampaign_storesales_zipcode':
             [
@@ -24,7 +27,7 @@ def main():
                 'notify_on_complete': {
                     'subject': 'Incampaign Storesales processed: please make sure that the Datamart completes ETL process',
                     'body': get_msg_body_for_completion(s3_folder, data_source_name),
-                    'recipients': NOTIFICATION_EMAIL_RECIPIENTS} # TODO: Add offshore email OFFSHORE_EMAIL_RECIPIENTS
+                    'recipients': NOTIFICATION_EMAIL_RECIPIENTS + OFFSHORE_EMAIL_RECIPIENTS}
                 }
             ]
     }
