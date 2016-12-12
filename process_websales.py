@@ -27,7 +27,7 @@ def main():
                  'notify_on_complete': {
                      'subject': 'Incampaign Storesales processed: please make sure that the Datamart completes ETL process',
                      'body': get_msg_body_for_completion(s3_folder, data_source_name),
-                     'recipients': NOTIFICATION_EMAIL_RECIPIENTS}  # TODO: Add offshore email OFFSHORE_EMAIL_RECIPIENTS
+                     'recipients': NOTIFICATION_EMAIL_RECIPIENTS + OFFSHORE_EMAIL_RECIPIENTS}
                 }
             ],
     }
