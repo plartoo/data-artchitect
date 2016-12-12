@@ -1,3 +1,12 @@
+"""
+TODO: update descriptino after everything is concrete
+Description: Script to extract KeepingTrac's creative names and send
+team notification to start manual mapping as necessary.
+
+This step must happen BEFORE the processing of deduping of RenTrak
+creative names (step 2 in RenTrak processing).
+"""
+
 import datetime
 import pandas as pd
 
@@ -13,7 +22,8 @@ def notify_for_manual_mapping(file, table, process):
         <li>download the attached file, <b>{0}</b>, from this email or directly from S3 location:
         <b>diap.prod.us-east-1.target/RenTrak/CreativeCleaned</b></li>
         <li>fill up kt_creative mappings under column C (kt_creative_clean) in that file</b></li>
-        <li>upload the file with new mappings to the S3 location above (delete any old file that exists in the S3 folder)</li>
+        <li>rename the cleaned file as <b>kt_creative_cleaned.xlsx</b>, and upload it to the S3 location above
+        <strong style="color: red;">(replace any file with the same name that exists in the S3 folder)</strong></li>
         <li>run this feed in DataVault: InCampaign KT Creative Mappings</li>
         <li><strong style="color: red;">AFTER the DataVault successfully loaded the new mappings</strong>,
             run this SQL in Vertica backend: <br>
@@ -111,7 +121,7 @@ def main():
     df = df.dropna(how='any') # drop blank rows
     unmapped_creatives = sum(x == 'nan' for x in df['kt_creative_clean'])
 
-    if unmapped_creatives == 0: ## TODO: change back to > 0
+    if unmapped_creatives > 0:
         print("Some unmapped kt_creatives found")
         # Take a lock in the process table so that part 2 cannot be run
         set_lock(flag_table, schema_name, flag, 0)
@@ -132,7 +142,7 @@ def main():
         # Send email to tell the team to start manual mapping
         subject = "RenTrak automated processing: new kt_creatives need to be mapped"
         body = notify_for_manual_mapping(output_file, output_table, 'kt_creative_cleaned')
-        send_notification_email(ADMIN_EMAIL_RECIPIENTS, subject, body, file_to_export) # TODO: update recipients
+        send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body, file_to_export)
         print("Notified the team to add manual mapping")
 
         os.remove(file_to_export)
@@ -146,7 +156,7 @@ def main():
         # insert, set flag to 1 and send email notification about being cleaned
         subject = "RenTrak processing stage 1: kt_creatives are all mapped. Stage 2 will automatically commence."
         body = notify_no_new_mapping_found()
-        send_notification_email(ADMIN_EMAIL_RECIPIENTS, subject, body) # TODO: update recipients
+        send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
         print("Notified the team that no further action on their part is required")
 
 if __name__ == "__main__":
