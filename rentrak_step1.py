@@ -126,13 +126,10 @@ def main():
         # Take a lock in the process table so that part 2 cannot be run
         set_lock(flag_table, schema_name, flag, 0)
 
-        df.to_excel(
-            os.path.join(output_folder, output_file),
-            index=False
-        )
+        file_to_export = os.path.join(output_folder, output_file)
+        df.to_excel(file_to_export, index=False)
 
         # Export to S3
-        file_to_export = output_folder + "/"+ output_file
         if os.path.isfile(file_to_export):
             s3 = client('s3')
             s3_outfile_name = s3_folder_name + output_file
