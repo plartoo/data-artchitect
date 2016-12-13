@@ -133,7 +133,7 @@ def main():
         # Send email to tell the team about the need for manual mapping
         subject = "Facebook automated processing step 1: new campaign group names need to be mapped"
         body = notify_for_manual_mapping(output_file, flag)
-        send_notification_email(DEV_EMAIL_RECIPIENTS, subject, body, file_to_export) # TODO: ONSHORE_EMAIL_RECIPIENTS
+        send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body, file_to_export)
         print("Notified the team to add manual mapping")
 
         # Delete local file
@@ -147,7 +147,7 @@ def main():
         # insert, set flag to 1 and send email notification about being cleaned
         subject = "Facebook automated processing step 1: campaign group names are all mapped. Step 2 will automatically commence."
         body = notify_no_new_mapping_found()
-        send_notification_email(DEV_EMAIL_RECIPIENTS, subject, body) # TODO: ONSHORE_EMAIL_RECIPIENTS
+        send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
         print("Notified the team that no further action on their part is required")
 
 if __name__ == "__main__":
