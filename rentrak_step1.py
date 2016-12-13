@@ -6,26 +6,26 @@ team notification to start manual mapping as necessary.
 This step must happen BEFORE the processing of deduping of RenTrak
 creative names (step 2 in RenTrak processing).
 """
-
-import datetime
 import pandas as pd
 
 from mailer import Mailer
 from vertica_utils import *
 from s3_utils import *
 
+
 def notify_for_manual_mapping(file, table, process):
     email_str = """
-        <p>Our python script extracted new creative names from keepingtrac data.</p>
+        <p>Python script extracted new creative names from KeepingTrac data.</p>
         <p>To run the rest of the RenTrak ETL process smoothly, please do the followings:
         <ol>
-        <li>download the attached file, <b>{0}</b>, from this email or directly from S3 location:
-        <b>diap.prod.us-east-1.target/RenTrak/CreativeCleaned</b></li>
-        <li>fill up kt_creative mappings under column C (kt_creative_clean) in that file</b></li>
-        <li>rename the cleaned file as <b>kt_creative_cleaned.xlsx</b>, and upload it to the S3 location above
-        <strong style="color: red;">(replace any file with the same name that exists in the S3 folder)</strong></li>
+        <li>download the attached file, <b>{0}</b>, from this email</li>
+        <li>fill up empty (nan/NULL) kt_creative mappings under column C (kt_creative_clean) in that file</b></li>
+        <li>upload the modified file to the S3 location below
+        <span style="color: red;">(replace any file with the same name in the S3 folder, if any)</span>:<br>
+        <b>diap.prod.us-east-1.target/RenTrak/CreativeCleaned</b>
+        </li>
         <li>run this feed in DataVault: InCampaign KT Creative Mappings</li>
-        <li><strong style="color: red;">AFTER the DataVault successfully loaded the new mappings</strong>,
+        <li><strong style="color: red;">AFTER the DataVault feed successfully loaded the mappings</strong>,
             run this SQL in Vertica backend: <br>
             <b>
             UPDATE gaintheory_us_targetusa_14.incampaign_process_switches
@@ -35,7 +35,7 @@ def notify_for_manual_mapping(file, table, process):
         </li>
         </ol>
         </p>
-        <p><strong style="color: red;">NOTE: If you fail to do as directed above, the second part of RenTrak processing
+        <p><strong style="color: red;">NOTE: If you forget a step or more above, the second part of RenTrak processing
         may not produce correct results.</strong></p>
         """.format(file, table, process)
     return email_str
@@ -85,10 +85,7 @@ def set_lock(table_name, schema_name, flag_name, value):
 
 
 def main():
-    # Extract previous six weeks' data
-    today = datetime.date.today()
-    start_date = (today - datetime.timedelta(weeks=6, days=1)).strftime('%Y-%m-%d')
-    end_date = (today - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+    # start_date = (today - datetime.timedelta(weeks=6, days=1)).strftime('%Y-%m-%d')
     schema_name = 'gaintheory_us_targetusa_14'
     flag_table = 'incampaign_process_switches'
     output_table = 'incampaign_kt_creative_mappings'
@@ -96,8 +93,7 @@ def main():
 
     # Location of sources and destination files
     output_folder = ROOT_FOLDER + 'RenTrak'
-    output_file = 'kt_cleaned_%s_%s.xlsx' % (start_date, end_date)
-    s3_folder_name = 'RenTrak/CreativeCleaned/'
+    output_file = 'kt_creative_cleaned.xlsx'
 
     if not os.path.exists(output_folder):
         print("Creating a new local folder for export file:", output_folder)
@@ -128,13 +124,6 @@ def main():
 
         file_to_export = os.path.join(output_folder, output_file)
         df.to_excel(file_to_export, index=False)
-
-        # Export to S3
-        if os.path.isfile(file_to_export):
-            s3 = client('s3')
-            s3_outfile_name = s3_folder_name + output_file
-            s3.upload_file(file_to_export, EXPORT_BUCKET, s3_outfile_name)
-            print("File exported to S3 location=>", s3_outfile_name)
 
         # Send email to tell the team to start manual mapping
         subject = "RenTrak automated processing: new kt_creatives need to be mapped"
