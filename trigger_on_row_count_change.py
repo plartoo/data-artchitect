@@ -17,8 +17,8 @@ def send_dev_email(table_name, row_count, cmd_used, status_msg):
     print("Admin notification email sent.")
 
 
-def send_notification_email(recipients, subject, body):
-    Mailer().send_email(recipients, subject, body)
+def send_notification_email(recipients, subject, body, attachment=None):
+    Mailer().send_email(recipients, subject, body, attachment)
     print("Notification email sent.")
 
 
@@ -119,7 +119,8 @@ def trigger_on_row_count_change(table_and_actions, obsvn_cnt=3):
                                             subject = proc['notify_on_complete']['subject']
                                             body = proc['notify_on_complete']['body']
                                             recipients = proc['notify_on_complete']['recipients']
-                                            send_notification_email(recipients, subject, body)
+                                            attachment = proc['notify_on_complete']['attachment']
+                                            send_notification_email(recipients, subject, body, attachment)
                                     except Exception as err:
                                         send_error_email(err)
                         else: # Row count for the table has changed. Enter a new entry/row for this.
