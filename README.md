@@ -1,0 +1,1 @@
+Python scripts to automate data processing using Vertica, S3 and Datamart.
