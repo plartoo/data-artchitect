@@ -30,14 +30,13 @@ def main():
     table_and_actions = {
         'incampaign_facebook_impressions_and_spend':
             [
-                {'cmd': ['python', ROOT_FOLDER+'run_vsql.py', SQL_SCRIPT_FOLDER+'fb_extract_gp_names.sql'],
-                  # 'notify_on_complete': {
-                  #     'subject': 'InCampaign Facebook: new campaign group names are extracted (Follow up action needed)',
-                  #     'body': get_msg_body_for_completion(),
-                  #     'recipients': ONSHORE_EMAIL_RECIPIENTS}
-                 },
-                # {'cmd': ['python', ROOT_FOLDER + 'run_vsql.py', SQL_SCRIPT_FOLDER + 'fb_extract_gp_names.sql']}
-
+                {'cmd': ['python', ROOT_FOLDER+'run_vsql.py', SQL_SCRIPT_FOLDER+'fb_extract_gp_names.sql']},
+                {'cmd': ['python', ROOT_FOLDER + 'fb_extract_gp_names.py'],
+                 'notify_on_complete': {
+                     'subject': 'InCampaign Facebook: new campaign group names are extracted (Follow up action needed)',
+                     'body': get_msg_body_for_completion(),
+                     'recipients': DEV_EMAIL_RECIPIENTS} # TODO: change this email address to ONSHORE
+                 }
             ]
     }
     trigger_on_row_count_change(table_and_actions)
