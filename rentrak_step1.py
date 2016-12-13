@@ -13,7 +13,7 @@ from vertica_utils import *
 from s3_utils import *
 
 
-def notify_for_manual_mapping(file, process):
+def notify_for_manual_mapping(file, process_name):
     email_str = """
         <p>Python script extracted new creative names from KeepingTrac data.</p>
         <p>To run the rest of the RenTrak ETL process smoothly, please do the followings:
@@ -24,7 +24,7 @@ def notify_for_manual_mapping(file, process):
         <span style="color: red;">(replace any file with the same name in the S3 folder, if any)</span>:<br>
         <b>diap.prod.us-east-1.target/RenTrak/CreativeCleaned</b>
         </li>
-        <li>run this feed in DataVault: InCampaign KT Creative Mappings</li>
+        <li>run this feed in DataVault: <b>InCampaign KT Creative Mappings</b></li>
         <li><span style="color: red;">AFTER the DataVault feed successfully loaded the mappings</span>,
             run this SQL in Vertica backend: <br>
             <b>
@@ -37,7 +37,7 @@ def notify_for_manual_mapping(file, process):
         </p>
         <p><strong style="color: red;">NOTE: If you forget a step or more above, the second part of RenTrak processing
         may not produce correct results.</strong></p>
-        """.format(file, process)
+        """.format(file, process_name)
     return email_str
 
 
@@ -119,15 +119,15 @@ def main():
 
     if unmapped_creatives > 0:
         print("Some unmapped kt_creatives found")
-        # Take a lock in the process table so that part 2 cannot be run
+        print("Acquiring process lock:", flag, "so that the second part of RenTrak processing cannot proceed")
         set_lock(flag_table, schema_name, flag, 0)
 
         file_to_export = os.path.join(output_folder, output_file)
         df.to_excel(file_to_export, index=False)
 
         # Send email to tell the team to start manual mapping
-        subject = "RenTrak automated processing: new kt_creatives need to be mapped"
-        body = notify_for_manual_mapping(output_file, 'kt_creative_cleaned')
+        subject = "RenTrak automated processing step 1: new kt_creatives need to be mapped"
+        body = notify_for_manual_mapping(output_file, flag)
         send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body, file_to_export)
         print("Notified the team to add manual mapping")
 
@@ -136,11 +136,11 @@ def main():
 
     else:
         print("Everything is mapped")
-        print("Releasing lock:", flag, "so that the second part of RenTrak processing can proceed")
+        print("Releasing process lock:", flag, "so that the second part of RenTrak processing can proceed")
         set_lock(flag_table, schema_name, flag, 1)
 
         # insert, set flag to 1 and send email notification about being cleaned
-        subject = "RenTrak processing stage 1: kt_creatives are all mapped. Stage 2 will automatically commence."
+        subject = "RenTrak automated processing step 1: kt_creatives are all mapped. Step 2 will automatically commence."
         body = notify_no_new_mapping_found()
         send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
         print("Notified the team that no further action on their part is required")
