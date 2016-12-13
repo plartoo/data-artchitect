@@ -77,7 +77,7 @@ def trigger_on_flag_value_change(flag_name_and_actions):
 
                     if cur_flag_val == trigger_script_when_flag_value:
                         for proc in procedures:
-                            if 'pre_cmd' in proc:   # TODO: this is ugly code; refactor later
+                            if 'pre_cmd' in proc:   # TODO: this ugly code can be refactored as part of subprocess run
                                 pre_cmd = proc['pre_cmd']
                                 if 'tables_to_truncate' in pre_cmd:
                                     print("Checking (possibly mapping) table(s) to make sure it's truncated...")
