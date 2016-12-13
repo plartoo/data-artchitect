@@ -13,7 +13,7 @@ from vertica_utils import *
 from s3_utils import *
 
 
-def notify_for_manual_mapping(file, table, process):
+def notify_for_manual_mapping(file, process):
     email_str = """
         <p>Python script extracted new creative names from KeepingTrac data.</p>
         <p>To run the rest of the RenTrak ETL process smoothly, please do the followings:
@@ -25,19 +25,19 @@ def notify_for_manual_mapping(file, table, process):
         <b>diap.prod.us-east-1.target/RenTrak/CreativeCleaned</b>
         </li>
         <li>run this feed in DataVault: InCampaign KT Creative Mappings</li>
-        <li><strong style="color: red;">AFTER the DataVault feed successfully loaded the mappings</strong>,
+        <li><span style="color: red;">AFTER the DataVault feed successfully loaded the mappings</span>,
             run this SQL in Vertica backend: <br>
             <b>
             UPDATE gaintheory_us_targetusa_14.incampaign_process_switches
             SET run = 1
-            WHERE process_name = '{2}';
+            WHERE process_name = '{1}';
             </b>
         </li>
         </ol>
         </p>
         <p><strong style="color: red;">NOTE: If you forget a step or more above, the second part of RenTrak processing
         may not produce correct results.</strong></p>
-        """.format(file, table, process)
+        """.format(file, process)
     return email_str
 
 
@@ -87,8 +87,8 @@ def set_lock(table_name, schema_name, flag_name, value):
 def main():
     # start_date = (today - datetime.timedelta(weeks=6, days=1)).strftime('%Y-%m-%d')
     schema_name = 'gaintheory_us_targetusa_14'
+    mapping_table = 'incampaign_kt_creative_mappings'
     flag_table = 'incampaign_process_switches'
-    output_table = 'incampaign_kt_creative_mappings'
     flag = 'kt_creative_cleaned'
 
     # Location of sources and destination files
@@ -108,7 +108,7 @@ def main():
         WHERE Air_ISCI IS NOT NULL
         GROUP BY a.Air_ISCI, a.Cmml_Title, kt_creative_clean
         ORDER BY kt_creative_id
-    """.format(output_table, schema_name)
+    """.format(mapping_table, schema_name)
 
     df = vertica_extract(
         extract_query,
@@ -127,7 +127,7 @@ def main():
 
         # Send email to tell the team to start manual mapping
         subject = "RenTrak automated processing: new kt_creatives need to be mapped"
-        body = notify_for_manual_mapping(output_file, output_table, 'kt_creative_cleaned')
+        body = notify_for_manual_mapping(output_file, 'kt_creative_cleaned')
         send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body, file_to_export)
         print("Notified the team to add manual mapping")
 
