@@ -29,7 +29,7 @@ def main():
                  'notify_on_complete': {
                      'subject': 'Incampaign Facebook data processed: please make sure that the Datamart completes the ETL process',
                      'body': get_msg_body_for_completion(s3_folder, data_source_name),
-                     'recipients': DEV_EMAIL_RECIPIENTS}#TODO: replace with ONSHORE_EMAIL_RECIPIENTS + OFFSHORE_EMAIL_RECIPIENTS}
+                     'recipients': ONSHORE_EMAIL_RECIPIENTS + OFFSHORE_EMAIL_RECIPIENTS}
                  }
             ]
     }
