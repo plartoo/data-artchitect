@@ -20,7 +20,7 @@ def notify_to_set_flags(flag_name):
         <p>To proceed to the final step of extracting the last 60 days' data and exporting it to S3, we must:
         <ol>
         <li>
-        <b>(If you have done it already, skip this step) </b>
+        <b>(If you have done this already for most recent KeepingTrac data, skip this step) </b>
         Using DataVault's <b>'InCampaign KT Creative Mappings'</b> feed, upload the kt_creative mappings,
         which should have been sent to you via this automated process a few days ago.
         If you have not received it for this week, please ask Phyo to generate it for you..</li>
