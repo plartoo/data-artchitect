@@ -14,7 +14,7 @@ from vertica_utils import *
 from s3_utils import *
 
 
-def notify_to_set_flags(flag_names):
+def notify_to_set_flags(flag_name):
     email_str = """
         <p>Python script successfully deduped creative matches from RenTrak data.</p>
         <p>To proceed to the final step of extracting the last 60 days' data and exporting it to S3, we must:
@@ -24,23 +24,21 @@ def notify_to_set_flags(flag_names):
         Using DataVault's <b>'InCampaign KT Creative Mappings'</b> feed, upload the kt_creative mappings,
         which should have been sent to you via this automated process a few days ago.
         If you have not received it for this week, please ask Phyo to generate it for you..</li>
-        <li>Set <b>BOTH</b> of these flags' values to 1 by running the SQL queries below in Vertica backend:
+        <li>
+            <span style="color: red;">AFTER you've ensured that latest kt creative mappings are uploaded in DataVault,
+            </span>
+        run the SQL query below in Vertica backend:
         <br>
         <br>
             <b>
             UPDATE gaintheory_us_targetusa_14.incampaign_process_switches
             SET run = 1
-            WHERE process_name = '{flag1}';
-            <br>
-            <br>
-            UPDATE gaintheory_us_targetusa_14.incampaign_process_switches
-            SET run = 1
-            WHERE process_name = '{flag2}';
+            WHERE process_name = '{flag}';
             </b>
         </li>
         </ol>
         </p>
-        """.format(**flag_names)
+        """.format(**flag_name)
     return email_str
 
 
@@ -255,7 +253,7 @@ def main():
     if flag_val == 0:
         print(flag_to_check, "is set to:", flag_val)
         subject = "RenTrak automated processing step 2 (needs attention): kt_creatives might not have been uploaded"
-        body = notify_to_set_flags({'flag1': flag_to_check, 'flag2': flag_to_set})
+        body = notify_to_set_flags({'flag': flag_to_set})
         send_notification_email(DEV_EMAIL_RECIPIENTS, subject, body) # TODO: replace with ONSHORE_EMAIL_RECIPIENTS
         print("Notified the team about kt_creative flag")
     elif flag_val < 0:
