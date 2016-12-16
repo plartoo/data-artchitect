@@ -44,7 +44,7 @@ def notify_for_manual_mapping(file, process_name):
 def notify_no_new_mapping_found():
     email_str = """
         <p>Python script does not find any new creative names from keepingtrac data.
-        Stage 2 of processing RenTrak data itself will begin when we load new data to RenTrak tables.
+        Stage 2 of processing RenTrak data will begin when we load new data to RenTrak tables.
         </p>
         <p><b>No further action on your part is needed.</b></p>
         """
@@ -82,6 +82,7 @@ def set_lock(table_name, schema_name, flag_name, value):
     with vertica_python.connect(**conn_info) as connection:
         cur = connection.cursor()
         cur.execute(set_flag_value(table_name, schema_name, flag_name, value))
+        connection.commit()
 
 
 def main():
@@ -89,7 +90,7 @@ def main():
     schema_name = 'gaintheory_us_targetusa_14'
     mapping_table = 'incampaign_kt_creative_mappings'
     flag_table = 'incampaign_process_switches'
-    flag = 'kt_creative_cleaned'
+    flag = 'rentrak_kt_creative_cleaned'
 
     # Location of sources and destination files
     output_folder = ROOT_FOLDER + 'RenTrak'
