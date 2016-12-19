@@ -130,7 +130,7 @@ def trigger_on_flag_value_change(flag_name_and_actions):
         send_error_email(err)
     finally:
         with vertica_python.connect(**conn_info) as connection:
-            print("Resetting the flag value")
+            print("Resetting the flag value:", cur_flag)
             cursor = connection.cursor()
             cursor.execute(set_flag_value(switch_table, schema_name, cur_flag, DEFAULT_FLAG_VALUE))
 
