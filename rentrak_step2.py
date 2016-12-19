@@ -254,7 +254,7 @@ def main():
         print(flag_to_check, "is set to:", flag_val)
         subject = "RenTrak automated processing step 2 (needs attention): kt_creatives might not have been uploaded"
         body = notify_to_set_flags({'flag': flag_to_set})
-        send_notification_email(DEV_EMAIL_RECIPIENTS, subject, body) # TODO: replace with ONSHORE_EMAIL_RECIPIENTS
+        send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
         print("Notified the team about kt_creative flag")
     elif flag_val < 0:
         print(flag_to_check, "is set to:", flag_val)
@@ -272,7 +272,7 @@ def main():
         print(flag_to_check, "is set to:", flag_val)
         subject = "RenTrak automated processing step 2 successfully completed (no follow-up action required)"
         body = notify_success(deduped_table)
-        send_notification_email(DEV_EMAIL_RECIPIENTS, subject, body) # TODO: replace with ONSHORE_EMAIL_RECIPIENTS
+        send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
         print("Notified the team that no further action on their part is required")
 
 if __name__ == "__main__":
