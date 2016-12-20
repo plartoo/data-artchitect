@@ -31,7 +31,7 @@ def main():
                 }
             ]
     }
-    trigger_on_row_count_change(table_and_actions)
+    trigger_on_row_count_change(table_and_actions, 2)
 
 if __name__ == "__main__":
     main()

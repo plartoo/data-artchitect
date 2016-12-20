@@ -117,23 +117,22 @@ def trigger_on_flag_value_change(flag_name_and_actions):
                                     send_notification_email(recipients, subject, body)
 
                             except Exception as err:
-                                send_error_email(err)
+                                send_error_email(repr(err))
 
     except vertica_python.errors.QueryError as err:
         print("Vertica Query Error!")
-        send_error_email(err)
+        send_error_email(repr(err))
     except subprocess.CalledProcessError as err:
         print("CalledProcessError. Detail =>", err)
-        send_error_email(err)
+        send_error_email(repr(err))
     except Exception as err:
         print("Unknown Error Occurred!")
-        send_error_email(err)
+        send_error_email(repr(err))
     finally:
         with vertica_python.connect(**conn_info) as connection:
-            print("Resetting the flag value")
+            print("Resetting the flag value:", cur_flag)
             cursor = connection.cursor()
             cursor.execute(set_flag_value(switch_table, schema_name, cur_flag, DEFAULT_FLAG_VALUE))
-
 
 if __name__ == "__main__":
     flag_name_and_actions = {

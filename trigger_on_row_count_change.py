@@ -119,10 +119,12 @@ def trigger_on_row_count_change(table_and_actions, obsvn_cnt=3):
                                             subject = proc['notify_on_complete']['subject']
                                             body = proc['notify_on_complete']['body']
                                             recipients = proc['notify_on_complete']['recipients']
-                                            attachment = proc['notify_on_complete']['attachment']
+                                            attachment = None
+                                            if 'attachment' in proc['notify_on_complete']:
+                                                attachment = proc['notify_on_complete']['attachment']
                                             send_notification_email(recipients, subject, body, attachment)
                                     except Exception as err:
-                                        send_error_email(err)
+                                        send_error_email(repr(err))
                         else: # Row count for the table has changed. Enter a new entry/row for this.
                             q = add_new_row_cnt_record(row_cnt_table, schema_name, table, cur_row_cnt)
                             run_query_to_modify_row_cnt_table(cursor, q)
