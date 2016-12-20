@@ -25,13 +25,13 @@ def main():
                 {'cmd': ['python', ROOT_FOLDER + 'run_vsql_and_export_to_s3.py',
                          SQL_SCRIPT_FOLDER + 'export_websales.sql', 'WebSales/', s3_folder, 'websales'],
                  'notify_on_complete': {
-                     'subject': 'Incampaign Storesales processed: please make sure that the Datamart completes the ETL process',
+                     'subject': 'Incampaign Websales processed: please make sure that the Datamart completes the ETL process',
                      'body': get_msg_body_for_completion(s3_folder, data_source_name),
                      'recipients': ONSHORE_EMAIL_RECIPIENTS + OFFSHORE_EMAIL_RECIPIENTS}
                 }
             ],
     }
-    trigger_on_row_count_change(table_and_actions)
+    trigger_on_row_count_change(table_and_actions, 2)
 
 if __name__ == "__main__":
     main()
