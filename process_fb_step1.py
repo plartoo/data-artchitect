@@ -9,7 +9,7 @@ def main():
                 {'cmd': ['python', ROOT_FOLDER + 'fb_step1_post_process.py']}
             ]
     }
-    trigger_on_row_count_change(table_and_actions)
+    trigger_on_row_count_change(table_and_actions, 2)
 
 if __name__ == "__main__":
     main()
