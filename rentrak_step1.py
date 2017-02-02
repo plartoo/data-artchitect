@@ -1,5 +1,5 @@
 """
-TODO: update descriptino after everything is concrete
+TODO: update description after everything (requirements) is (are) stable/concrete
 Description: Script to extract KeepingTrac's creative names and send
 team notification to start manual mapping as necessary.
 
@@ -103,7 +103,7 @@ def main():
     # Step 1: Download all possible KT combinations and current matching cleaned creative names
     extract_query = """
         SELECT Air_ISCI as kt_creative_id, Cmml_Title AS kt_creative, kt_creative_clean
-        FROM {1}.keepingtrac a
+        FROM {1}.incampaign_keepingtrac_all a
         LEFT JOIN {1}.{0} b
         ON a.Air_ISCI = b.kt_creative_id
         WHERE Air_ISCI IS NOT NULL
@@ -115,8 +115,7 @@ def main():
         extract_query,
         ['kt_creative_id', 'kt_creative', 'kt_creative_clean']
     )
-    df = df.dropna(how='any') # drop blank rows
-    unmapped_creatives = sum(x == 'nan' for x in df['kt_creative_clean'])
+    unmapped_creatives = df.isnull().sum()['kt_creative_clean'] # remove blank cells
 
     if unmapped_creatives > 0:
         print("Some unmapped kt_creatives found")
