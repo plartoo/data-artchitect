@@ -83,7 +83,7 @@ def set_lock(table_name, schema_name, flag_name, value):
 
 def main():
     schema_name = 'gaintheory_us_targetusa_14'
-    new_mapping_table = 'incampaign_facebook_campaign_group_names_to_map'
+    new_mapping_table = 'incampaign_facebook_campaign_names_to_map'
     existing_mapping_table = 'incampaign_facebook_mapped_campaign_group_name'
     flag_table = 'incampaign_process_switches'
     flag = 'fb_etl_and_export_to_s3'

@@ -37,11 +37,11 @@ ROWS AS
         --        SUM(a.fb_instagram_spend)             AS fb_instagram_spend,
         --        SUM(a.fb_audiencenetwork_spend)       AS fb_audiencenetwork_spend
     FROM
-        gaintheory_us_targetusa_14.incampaign_facebook_impressions_and_spend AS a
+        gaintheory_us_targetusa_14.v_incampaign_facebook_impressions_and_spend AS a
     LEFT JOIN
         gaintheory_us_targetusa_14.incampaign_facebook_mapped_campaign_group_name AS b
     ON
-        a.fb_campaign_group_name = b.fb_campaign_group_name
+        a.fb_campaign_name = b.fb_campaign_group_name
     WHERE
         a.fb_date >= (GETDATE()-60)::DATE
     AND b.fb_mapped_campaign_group_name IS NOT NULL
