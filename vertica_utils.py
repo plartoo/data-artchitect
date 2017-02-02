@@ -18,9 +18,22 @@ def table_exists(cursor, table_name, schema_name):
         raise err
 
 
+def view_exists(cursor, table_name, schema_name):
+    sql = ('SELECT * FROM views WHERE table_name=\'' + table_name + '\' and table_schema=\'' + schema_name + '\';')
+    try:
+        cursor.execute(sql)
+        return False if not cursor.fetchall() else True
+    except vertica_python.errors.QueryError as err:
+        raise err
+
+
+def table_or_view_exists(cursor, table_name, schema_name):
+    return table_exists(cursor, table_name, schema_name) or view_exists(cursor, table_name, schema_name)
+
+
 def get_row_count(cursor, table_name, schema_name, filter=';'):
     sql = ('SELECT COUNT(*) FROM ' + schema_name + '.' + table_name + filter)
-    if table_exists(cursor, table_name, schema_name):
+    if table_or_view_exists(cursor, table_name, schema_name):
         try:
             cursor.execute(sql)
             row_cnt = cursor.fetchall()
@@ -37,7 +50,7 @@ def get_row_count_by_filter(cursor, filter, table_name, schema_name):
 
 def rename_table(cursor, old_name, new_name, schema_name):
     sql = ('ALTER TABLE ' + schema_name + '.' + old_name + ' RENAME TO ' + new_name + ';')
-    if table_exists(cursor, old_name, schema_name):
+    if table_or_view_exists(cursor, old_name, schema_name):
         try:
             cursor.execute(sql)
         except:
