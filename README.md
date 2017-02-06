@@ -10,7 +10,8 @@ Setup instructions:
 5. `pip install pandas`
 6. `pip install boto3`
 7. `pip install vertica_python`
-8. Configure AWS CLI by following this guide:
+8. `pip install schedule` (only if you need scheduling like cron, say, bi-weekly
+9. Configure AWS CLI by following this guide:
 http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html
 
 In particular, type this in command prompt:
