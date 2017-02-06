@@ -1,3 +1,6 @@
+import time
+import os
+
 from trigger_on_flag_value_change import *
 
 
@@ -36,4 +39,6 @@ def main():
     trigger_on_flag_value_change(flag_name_and_actions)
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    print("Time taken to complete %s: %s secs" % (os.path.basename(__file__), (time.time() - start_time)))
