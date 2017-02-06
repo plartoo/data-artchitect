@@ -9,7 +9,7 @@ Last Modified: Nov 16, 2016
 
 from account_info import *
 from vertica_utils import *
-from logger import Logger
+from sqllogger import SQLLogger
 from mailer import Mailer
 
 def join_impressions_with_campaign_gp_names(output_table, schema_name):
@@ -169,7 +169,7 @@ def main():
     aggregated_mapped_table = 'incampaign_temp_facebook_aggregated_impressions_mapped_by_campaign_gp_names'
     dma_allocated_table = 'incampaign_temp_facebook_dma_to_zip_allocated_and_population_weight_applied'
 
-    logger = Logger(log_table, schema_name)
+    logger = SQLLogger(log_table, schema_name)
 
     try:
         with vertica_python.connect(**conn_info) as connection:
