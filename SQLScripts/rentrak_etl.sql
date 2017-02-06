@@ -36,30 +36,6 @@ FROM(
         GROUP BY zip
 ) a;
 
-/* KeepingTrac data with their equivalent Rentrak network where matches exist
-   Commented code restricts the dataset to only those days not available in the current Rentrak datset*/
-DROP TABLE IF EXISTS incampaign_tmp_kt_with_rt_network_mk;
-CREATE TABLE incampaign_tmp_kt_with_rt_network_mk AS
-SELECT  CASE 
-                WHEN Air_Time < '05:00:00' THEN Air_Date + 1
-                ELSE Air_date
-        END AS Air_Date,
-        Air_Time,
-        network AS kt_network,
-        rt_network,
-        Air_ISCI AS kt_creative_id,
-        kt_creative_clean AS kt_creative,
-        Spot_Length,
-        Act_Impression
-FROM keepingtrac kt 
-LEFT JOIN js_rt_kt_reference rf
-ON kt.network = rf.kt_network
-LEFT JOIN kt_creative_cleaned cr
-ON kt.Air_ISCI = cr.kt_creative_id
-WHERE Air_Date IS NOT NULL 
-AND Type_of_Demographic = 2
-AND NOT Media_Type = 'Syndication';
-
 /* The combined KeepingTrac and Rentrak data where network appears in both datasets,
    else a row containing a null VariableValue exists
    Also applies the naming convention matching current modelling data */
@@ -74,7 +50,7 @@ SELECT  zip AS Geography,
         Air_Date AS Period,
         Act_Impression*factor as VariableValue,
         Act_Impression
-FROM incampaign_tmp_kt_with_rt_network_mk kt
+FROM incampaign_tmp_kt_with_rt_network kt
 LEFT JOIN (
         SELECT a.network AS rt_network, zip, impressions/total_impressions AS factor
         FROM incampaign_tmp_rt_prev_month_network_zip_mk a
@@ -97,7 +73,7 @@ FROM incampaign_tmp_rt_prev_month_network_zip_mk
 ) a
 JOIN (
 SELECT 1 AS global_join, SUM(Act_Impression) as kt_impressions
-FROM incampaign_tmp_kt_with_rt_network_mk
+FROM incampaign_tmp_kt_with_rt_network
 WHERE Air_Date BETWEEN
         (
                 SELECT ADD_MONTHS(MAX(rentrak_ad_time::date-1), -1)
@@ -120,7 +96,7 @@ GROUP BY network
 ) a
 INNER JOIN (
 SELECT rt_network, SUM(Act_Impression) as kt_impressions
-FROM incampaign_tmp_kt_with_rt_network_mk
+FROM incampaign_tmp_kt_with_rt_network
 WHERE Air_Date BETWEEN
         (
                 SELECT ADD_MONTHS(MAX(rentrak_ad_time::date-1), -1)

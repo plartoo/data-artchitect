@@ -106,30 +106,90 @@ def get_lock_value(table_name, schema_name, flag_name):
     return val
 
 
-def get_creative_query(start_date, end_date):
+def update_reference_query():
     return """
-    SELECT rt_creative_id, rt_creative, kt_creative_id, kt_creative, SUM(rt_imp) AS rt_imp, SUM(kt_imp) AS kt_imp
-    FROM (
-            SELECT DATE_TRUNC('minute', Air_Date + Air_Time) AS air_date, rt_network AS network, kt_creative_id, kt_creative, SUM(Act_Impression) as kt_imp
-            FROM gaintheory_us_targetusa_14.incampaign_tmp_kt_with_rt_network_mk
-            WHERE Air_Date BETWEEN '{0}' AND '{1}'
-            GROUP BY DATE_TRUNC('minute', Air_Date + Air_Time), network, kt_creative_id, kt_creative
-    ) kt
-    FULL OUTER JOIN(
-            SELECT DATE_TRUNC('minute', rentrak_ad_time) AS air_date,
-                    rentrak_network as network, rentrak_ad_no AS rt_creative_id,
-                    rentrak_ad_copy AS rt_creative, SUM(a.rentrak_ad_zip_aa) AS rt_imp
-            FROM gaintheory_us_targetusa_14.incampaign_rentrak_zipcode a
-            LEFT JOIN gaintheory_us_targetusa_14.incampaign_rentrak_spotid b
-            ON a.rentrak_spot_id = b.rentrak_spot_id and a.rentrak_week = b.rentrak_week
-            WHERE rentrak_ad_time::date BETWEEN '{0}' AND '{1}'
-            GROUP BY DATE_TRUNC('minute', rentrak_ad_time), network, rt_creative_id, rt_creative
-    ) rt
-    ON kt.air_date = rt.air_date AND kt.network = rt.network
-    WHERE  rt_creative_id IS NOT NULL
-    GROUP BY rt_creative_id, rt_creative, kt_creative_id, kt_creative
-    ORDER BY rt_creative_id, kt_creative_id;
+      DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_kt_with_rt_network;
+        CREATE TABLE gaintheory_us_targetusa_14.incampaign_tmp_kt_with_rt_network AS
+        SELECT  CASE
+                        WHEN Air_Time < '05:00:00' THEN Air_Date + 1
+                        ELSE Air_date
+                END AS Air_Date,
+                Air_Time,
+                network AS kt_network,
+                rt_network,
+                Air_ISCI AS kt_creative_id,
+                kt_creative_clean AS kt_creative,
+                Spot_Length,
+                Act_Impression
+        FROM
+            gaintheory_us_targetusa_14.incampaign_keepingtrac_all kt
+        LEFT JOIN gaintheory_us_targetusa_14.js_rt_kt_reference rf
+        ON kt.network = rf.kt_network
+        LEFT JOIN gaintheory_us_targetusa_14.incampaign_kt_creative_mappings cr
+        ON kt.Air_ISCI = cr.kt_creative_id
+        WHERE Air_Date IS NOT NULL
+        AND Type_of_Demographic = 2
+        AND NOT Media_Type = 'Syndication';
+
+        SELECT *
+        FROM gaintheory_us_targetusa_14.incampaign_tmp_kt_with_rt_network;
+    """
+
+def get_unmapped_creative_query(start_date, end_date):
+    return """
+    DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_kt_creative_dedupe_raw;
+    CREATE TABLE gaintheory_us_targetusa_14.incampaign_tmp_kt_creative_dedupe_raw AS
+    (
+        SELECT rt_creative_id, rt_creative, kt_creative_id, kt_creative, SUM(rt_imp) AS rt_imp, SUM(kt_imp) AS kt_imp
+        FROM (
+                SELECT DATE_TRUNC('minute', Air_Date + Air_Time) AS air_date, rt_network AS network, kt_creative_id, kt_creative, SUM(Act_Impression) as kt_imp
+                FROM gaintheory_us_targetusa_14.incampaign_tmp_kt_with_rt_network
+                WHERE Air_Date BETWEEN '{0}' AND '{1}'
+                GROUP BY DATE_TRUNC('minute', Air_Date + Air_Time), network, kt_creative_id, kt_creative
+        ) kt
+        FULL OUTER JOIN(
+                SELECT DATE_TRUNC('minute', rentrak_ad_time) AS air_date,
+                        rentrak_network as network, rentrak_ad_no AS rt_creative_id,
+                        rentrak_ad_copy AS rt_creative, SUM(a.rentrak_ad_zip_aa) AS rt_imp
+                FROM gaintheory_us_targetusa_14.incampaign_rentrak_zipcode a
+                LEFT JOIN gaintheory_us_targetusa_14.incampaign_rentrak_spotid b
+                ON a.rentrak_spot_id = b.rentrak_spot_id and a.rentrak_week = b.rentrak_week
+                WHERE rentrak_ad_time::date BETWEEN '{0}' AND '{1}'
+                GROUP BY DATE_TRUNC('minute', rentrak_ad_time), network, rt_creative_id, rt_creative
+        ) rt
+        ON kt.air_date = rt.air_date AND kt.network = rt.network
+        WHERE  rt_creative_id IS NOT NULL
+        GROUP BY rt_creative_id, rt_creative, kt_creative_id, kt_creative
+        ORDER BY rt_creative_id, kt_creative_id
+    );
+
+
+    SELECT *
+    FROM gaintheory_us_targetusa_14.incampaign_tmp_kt_creative_dedupe_raw;
+    -- Select the ones from raw data which we don't have mappings already or are currently set as 'unknown'
+    -- NOTE: removed for now because it's easier to QA without this against Manoj's manual mappings
+    -- SELECT a.rt_creative_id, a.rt_creative, a.kt_creative_id, a.kt_creative, a.rt_imp, a.kt_imp
+    -- FROM
+    --     gaintheory_us_targetusa_14.incampaign_tmp_kt_creative_dedupe_raw a
+    -- LEFT JOIN
+    --     gaintheory_us_targetusa_14.incampaign_tmp_js_creative_match_deduped b
+    -- ON
+    --     a.rt_creative_id = b.rt_creative_id
+    -- WHERE
+    --     b.kt_creative IS NULL
+    -- OR  b.kt_creative = 'unknown'
+    -- GROUP BY a.rt_creative_id, a.rt_creative, a.kt_creative_id, a.kt_creative, a.rt_imp, a.kt_imp
+    -- ORDER BY a.rt_creative_id, a.rt_imp, a.kt_imp DESC
     """.format(start_date, end_date)
+
+
+def get_mapped_creatives():
+    return"""
+    SELECT a.rt_creative_id, a.rt_creative, a.kt_creative_id, a.kt_creative
+    FROM
+        gaintheory_us_targetusa_14.incampaign_rentrak_creative_match_deduped a
+    GROUP BY a.rt_creative_id, a.rt_creative, a.kt_creative_id, a.kt_creative
+    """
 
 
 def insert_query(table_name, schema_name):
@@ -191,35 +251,38 @@ def merge_from_tmp_to_final_deduped_table(tmp_table, mapping_table, schema_name)
         connection.commit()
 
 
-def dedupe(dataframe):
+def dedupe(raw_cr, ref_cr):
     """
     Dedupe results in dataframe using based on what Manoj's team wanted.
     :param dataframe: Pandas dataframe as input
     :return: dataframe: deduped Pandas dataframe
     """
-    columns = dataframe.columns
+    columns = raw_cr.columns
     deduped_df = pd.DataFrame(columns=columns)
 
-    for name, gp in dataframe.groupby('rt_creative_id'):
+    for name, gp in raw_cr.groupby('rt_creative_id'):
         sorted_gp = gp.sort_values(['rt_imp', 'kt_imp'], ascending=False)
 
         j = 0
         final_kt_creative = 'unknown'
-        cur_row = sorted_gp.iloc[j]
-        first_row = cur_row.values.tolist()
+        cur_rt_creative_id = int(sorted_gp.iloc[j].rt_creative_id) # pandas somehow turns ints into strs
+        first_row = sorted_gp.iloc[j].values.tolist()
 
-        if not pd.isnull(cur_row.kt_creative):
-            final_kt_creative = cur_row.kt_creative
-        else:
-            while (j < len(sorted_gp)) and (pd.isnull(cur_row.kt_creative)):
-                cur_row = sorted_gp.iloc[j]
-                if not pd.isnull(cur_row.kt_creative):
-                    final_kt_creative = cur_row.kt_creative
-                    break
-                j += 1
+        while (j < len(sorted_gp)):
+            cur_row = sorted_gp.iloc[j]
+            if not pd.isnull(cur_row.kt_creative):
+                final_kt_creative = cur_row.kt_creative
+                break
+            j += 1
+
+        #http://stackoverflow.com/questions/30787901/how-to-get-a-value-from-a-pandas-dataframe-and-not-the-index-and-object-type
+        if final_kt_creative == 'unknown': # if still 'unknown', then look up in historical reference
+            historical_record = ref_cr.loc[ref_cr.rt_creative_id==cur_rt_creative_id].values.tolist()
+            # e.g., [[1945979, '30% Off Toys', 'QDAF0014778', 'Holiday 2016 Ginger Toys Big Selfie']]
+            if historical_record:
+                final_kt_creative = historical_record[0][-1]
 
         first_row[3] = final_kt_creative
-
         d = dict(zip(columns, first_row))
         deduped_df = deduped_df.append(d, ignore_index=True)
 
@@ -230,6 +293,8 @@ def main():
     today = datetime.datetime.now()
     start_date = (today - datetime.timedelta(days=61)).strftime('%Y-%m-%d')
     end_date = today.strftime('%Y-%m-%d')
+
+    print(start_date, end_date)
 
     schema_name = 'gaintheory_us_targetusa_14'
     tmp_table = 'incampaign_tmp_js_creative_match_deduped'
@@ -242,11 +307,22 @@ def main():
     # Acquire the lock
     set_lock(flag_table, schema_name, flag_to_set, 0)
 
+    # Create/Update the reference table (copy creative names to KT from RenTrak): incampaign_tmp_kt_with_rt_network
+    df = vertica_extract(update_reference_query(), ['Air_Date', 'Air_Time',
+                                                    'kt_network', 'rt_network',
+                                                    'kt_creative_id', 'kt_creative',
+                                                    'Spot_Length', 'Act_Impression'
+                                                    ])
+
     # Download the raw creative details from both KT and RT and match based on network and minute
-    dataframe = vertica_extract(get_creative_query(start_date, end_date),
+    raw_creatives = vertica_extract(get_unmapped_creative_query(start_date, end_date),
                                 ['rt_creative_id', 'rt_creative', 'kt_creative_id', 'kt_creative', 'rt_imp', 'kt_imp'])
-    dataframe = dedupe(dataframe)
-    insert_from_dataframe(dataframe, tmp_table, schema_name)
+    # raw_creatives.to_excel(os.path.join('RenTrak', 'dupes.xlsx'),index=False)
+    reference_creatives = vertica_extract(get_mapped_creatives(), ['rt_creative_id', 'rt_creative',
+                                                                   'kt_creative_id', 'kt_creative'])
+
+    deduped_creatives = dedupe(raw_creatives, reference_creatives)
+    insert_from_dataframe(deduped_creatives, tmp_table, schema_name)
     merge_from_tmp_to_final_deduped_table(tmp_table, deduped_table, schema_name)
 
     flag_val = get_lock_value(flag_table, schema_name, flag_to_check)
