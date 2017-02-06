@@ -2,7 +2,7 @@ from trigger_on_row_count_change import *
 
 def main():
     table_and_actions = {
-        'keepingtrac':
+        'incampaign_keepingtrac_all':
             [
                 {'cmd': ['python', ROOT_FOLDER + 'rentrak_step1.py']},
             ],
