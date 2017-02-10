@@ -6,9 +6,9 @@ NOTE:
 As of Jan 31, 2017, this code takes about 1903secs (32mins) total and outputs ~30k rows.
 */
 DROP TABLE
-    IF EXISTS gaintheory_us_targetusa_14.incampaign_keepingtrac_local;
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_keepingtrac_local_last_60_days;
 CREATE TABLE
-    gaintheory_us_targetusa_14.incampaign_keepingtrac_local AS
+    gaintheory_us_targetusa_14.incampaign_keepingtrac_local_last_60_days AS
     (
         SELECT
             zip              AS Geography ,
