@@ -50,9 +50,9 @@ CREATE TABLE
 
 
 DROP TABLE
-    IF EXISTS gaintheory_us_targetusa_14.incampaign_dfa_impressions;
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_dfa_impressions_last_60_days;
 CREATE TABLE
-    gaintheory_us_targetusa_14.incampaign_dfa_impressions AS
+    gaintheory_us_targetusa_14.incampaign_dfa_impressions_last_60_days AS
     (
         SELECT
             'Geo'||zip_postal_code AS Geography,
