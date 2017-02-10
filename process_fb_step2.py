@@ -1,15 +1,21 @@
+import time
+import schedule
+
 from trigger_on_flag_value_change import *
+from logger import Logger
 
 
 def get_msg_body_for_completion(s3_export_folder, data_source_name):
     return """
         <p>Python script extracted the data from Vault and exported to this S3 location: <b>{0}</b></p>
         <p>To the offshore team, please make sure that the latest file in the above S3 folder
-        (marked with the timestamp, which has this email's date) is processed via this Data Source: <br>
+        (marked with the timestamp, which has this email's date) is processed (ETL-ed) via this Data Source: <br>
         <b>{1}</b>
         <br>
-        <strong style="color: red;">up to the 'Transformed' step (that is, all missing values added and 'Transformed'
-        status should be green)</strong></p>
+        <strong style="color: red;">
+        Note: This Data Source is scheduled to automatically ETL on weekends, but if the weekend ETL failed, please
+        do anything necessary to finish the ETL BEFORE Tuesday morning (9am) in India.
+        </strong></p>
         """.format(s3_export_folder, data_source_name)
 
 
@@ -33,7 +39,21 @@ def main():
                  }
             ]
     }
+
+    logger = Logger(__file__)
+    start_time = time.ctime()
     trigger_on_flag_value_change(flag_name_and_actions)
+    logger.log_time_taken(start_time, time.ctime())
+
 
 if __name__ == "__main__":
-    main()
+    interval = 1
+    print("\n\n*****DO NOT KILL this program*****\n")
+    print("If you accidentally or intentionally killed this program, please rerun it")
+    print("This program runs processes every:", interval, "hour(s)")
+
+    schedule.every(interval).hours.do(main)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

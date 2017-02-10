@@ -1,18 +1,23 @@
 import time
-import os
+import schedule
 
 from trigger_on_flag_value_change import *
+from logger import Logger
 
 
 def get_msg_body_for_completion(s3_export_folder, data_source_name):
     return """
         <p>Python script extracted the RenTrak data from Vault and exported to this S3 location: <b>{0}</b></p>
-        <p>To the offshore team, please make sure that the latest file in the above S3 folder
-        (marked with the timestamp, which has this email's date) is processed via this Data Source: <br>
+        <p>To the offshore team, please verify that the processing of the following Data Source: <br>
         <b>{1}</b>
         <br>
-        <strong style="color: red;">up to the 'Transformed' step (that is, all missing values added and 'Transformed'
-        status should be green)</strong></p>
+        is <b>finished</b> before the start of Tuesday morning (9am) in India. Note that the Data Source is scheduled
+        to automatically start running by 1AM India time on Tuesday morning, and it should normally take no more than
+        3 hours to finish the ETL).
+        <br>
+        <strong style="color: red;"> If the Data Source automatic ETL failed, please notify onshore team and
+        do anything is necessary to ETL it to completion ASAP.</strong>
+        </p>
         """.format(s3_export_folder, data_source_name)
 
 
@@ -36,9 +41,21 @@ def main():
                  }
             ]
     }
+
+    logger = Logger(__file__)
+    start_time = time.ctime()
     trigger_on_flag_value_change(flag_name_and_actions)
+    logger.log_time_taken(start_time, time.ctime())
+
 
 if __name__ == "__main__":
-    start_time = time.time()
-    main()
-    print("Time taken to complete %s: %s secs" % (os.path.basename(__file__), (time.time() - start_time)))
+    interval = 1
+    print("\n\n*****DO NOT KILL this program*****\n")
+    print("If you accidentally or intentionally killed this program, please rerun it")
+    print("This program runs processes every:", interval, "hour(s)")
+
+    schedule.every(interval).hours.do(main)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

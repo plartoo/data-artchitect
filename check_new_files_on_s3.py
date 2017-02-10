@@ -1,9 +1,13 @@
 """
 Python script to keep checking if a file appears in specified S3 folders.
 """
+import time
+import schedule
+
+from mailer import Mailer
+from logger import Logger
 from s3_utils import *
 from vertica_utils import *
-from mailer import Mailer
 
 
 def send_notification_email(folder_name, file_names, feed_name):
@@ -56,6 +60,8 @@ def get_single_quoted_str(list_of_str):
 
 
 def main():
+    logger = Logger(__file__)
+    start_time = time.ctime()
     file_seen_table = 'incampaign_file_seen'
     schema_name = 'gaintheory_us_targetusa_14'
 
@@ -86,6 +92,7 @@ def main():
                 if len(new_files) > 0:
                     send_notification_email(folder, '<br>'.join(new_files), feed)
 
+        logger.log_time_taken(start_time, time.ctime())
         print("Finished checking new files in S3...")
     except vertica_python.errors.QueryError as err:
         print("Vertica Query Error!")
@@ -97,4 +104,13 @@ def main():
         send_error_email(err)
 
 if __name__ == "__main__":
-    main()
+    interval = 15
+    print("\n\n*****DO NOT KILL this program*****\n")
+    print("If you accidentally or intentionally killed this program, please rerun it")
+    print("This program runs processes every:", interval, "minute(s)")
+
+    schedule.every(interval).minutes.do(main)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

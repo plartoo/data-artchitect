@@ -41,6 +41,7 @@ def main():
     trigger_on_row_count_change(table_and_actions, 2)
     logger.log_time_taken(start_time, time.ctime())
 
+
 if __name__ == "__main__":
     interval = 1
     print("\n\n*****DO NOT KILL this program*****\n")
@@ -51,4 +52,4 @@ if __name__ == "__main__":
 
     while True:
         schedule.run_pending()
-        time.sleep(61)
+        time.sleep(1)
