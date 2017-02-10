@@ -42,7 +42,6 @@ def main():
 
 
 if __name__ == "__main__":
-    # every Monday at 3pm, KeepingTrac local is loaded
     print("\n\n*****DO NOT KILL this program*****\n")
     print("If you accidentally or intentionally killed this program, please rerun it")
     print("This program runs processes every: Friday at 2pm EST")
