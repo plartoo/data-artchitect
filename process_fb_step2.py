@@ -9,11 +9,12 @@ def get_msg_body_for_completion(s3_export_folder, data_source_name):
     return """
         <p>Python script extracted the data from Vault and exported to this S3 location: <b>{0}</b></p>
         <p>To the offshore team, please make sure that the latest file in the above S3 folder
-        (marked with the timestamp, which has this email's date) is processed (ETL-ed) via this Data Source: <br>
+        (marked with the timestamp, which has this email's date) is ETL-ed via this Data Source: <br>
         <b>{1}</b>
         <br>
         <strong style="color: red;">
-        Note: This Data Source is scheduled to automatically ETL on weekends, but if the weekend ETL failed, please
+        <br>
+        Note: This Data Source is scheduled to automatically ETL on every weekend, but if the weekend ETL failed, please
         do anything necessary to finish the ETL BEFORE Tuesday morning (9am) in India.
         </strong></p>
         """.format(s3_export_folder, data_source_name)
