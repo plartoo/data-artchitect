@@ -50,7 +50,7 @@ CREATE TABLE
                     CASE
                         WHEN position('Search' IN placement) = 0
                         THEN REGEXP_REPLACE(REGEXP_REPLACE(SPLIT_PART(placement,'(',2),'[^\w\s]',''
-                            ),'[ ]+' , '_')
+                            ),'[ ]+' , '')
                         ELSE REGEXP_REPLACE(REGEXP_REPLACE(LEFT(placement, position('Search' IN
                             placement) -1),'[^\w\s]',''),'[ ]+', '')
                     END
