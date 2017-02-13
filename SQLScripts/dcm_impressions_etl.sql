@@ -67,7 +67,7 @@ CREATE TABLE
             (
                 SELECT
                     zip_postal_code,
-                    a.md_event_time::DATE AS event_date,
+                    NEW_TIME(a.md_event_time, 'UCT', 'EST')::DATE AS event_date,
                     COUNT(*)              AS impressions
                 FROM
                     gaintheory_us_targetusa_14.TargetDFA2_impression a
@@ -77,7 +77,7 @@ CREATE TABLE
                     a.placement_id = b.page_id
                 AND a.rendering_id = b.creative_id
                 WHERE
-                    a.md_event_time::DATE >= (GETDATE()-60)::DATE
+                    NEW_TIME(a.md_event_time, 'UCT', 'EST')::DATE >= (GETDATE()-60)::DATE
                 GROUP BY
                     event_date,
                     zip_postal_code ) c
@@ -112,7 +112,7 @@ UNION ALL
                     END                   AS rawcamp,
                     b.channel             AS channel,
                     b.message             AS MESSAGE,
-                    a.md_event_time::DATE AS event_date,
+                    NEW_TIME(a.md_event_time, 'UCT', 'EST')::DATE AS event_date,
                     COUNT(*)              AS impressions,
                     b.publisher,
                     b.tactic
@@ -124,7 +124,7 @@ UNION ALL
                     a.placement_id = b.page_id
                 AND a.rendering_id = b.creative_id
                 WHERE
-                    a.md_event_time::DATE >= (GETDATE()-60)::DATE
+                    NEW_TIME(a.md_event_time, 'UCT', 'EST')::DATE >= (GETDATE()-60)::DATE
                 AND b.campaign NOT ilike '%DVM%'
                 GROUP BY
                     event_date,
@@ -164,7 +164,7 @@ UNION ALL
                     END AS rawcamp,
                     b.channel,
                     b.message,
-                    a.md_event_time::DATE AS event_date,
+                    NEW_TIME(a.md_event_time, 'UCT', 'EST')::DATE AS event_date,
                     COUNT(*)              AS impressions,
                     b.publisher,
                     b.tactic
@@ -176,7 +176,7 @@ UNION ALL
                     a.placement_id = b.page_id
                 AND a.rendering_id = b.creative_id
                 WHERE
-                    a.md_event_time::DATE >= (GETDATE()-60)::DATE
+                    NEW_TIME(a.md_event_time, 'UCT', 'EST')::DATE >= (GETDATE()-60)::DATE
                 AND b.campaign ilike '%DVM%'
                 GROUP BY
                     event_date,
