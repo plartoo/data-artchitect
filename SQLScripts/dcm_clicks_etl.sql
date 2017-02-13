@@ -16,7 +16,7 @@ CREATE TABLE
         SELECT
             x.placement_id,
             x.zip_postal_code,
-            NEW_TIME(x.md_event_time, 'UCT', 'EST')::DATE AS event_date,
+            NEW_TIME(x.md_event_time, 'UTC', 'EST')::DATE AS event_date,
             COUNT(*)                      AS clicks
         FROM
             gaintheory_us_targetusa_14.TargetDFA2_click x
@@ -24,7 +24,7 @@ CREATE TABLE
             x.advertiser_id = '2906542'
         AND x.campaign_id IN ('9009889',
                               '9640480')
-        AND NEW_TIME(x.md_event_time, 'UCT', 'EST')::DATE >= (GETDATE()-60)::DATE
+        AND NEW_TIME(x.md_event_time, 'UTC', 'EST')::DATE >= (GETDATE()-60)::DATE
         GROUP BY
             placement_id,
             zip_postal_code,
