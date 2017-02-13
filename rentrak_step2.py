@@ -135,6 +135,7 @@ def update_reference_query():
         FROM gaintheory_us_targetusa_14.incampaign_tmp_kt_with_rt_network;
     """
 
+
 def get_unmapped_creative_query(start_date, end_date):
     return """
     DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_kt_creative_dedupe_raw;
@@ -172,7 +173,7 @@ def get_unmapped_creative_query(start_date, end_date):
     -- FROM
     --     gaintheory_us_targetusa_14.incampaign_tmp_kt_creative_dedupe_raw a
     -- LEFT JOIN
-    --     gaintheory_us_targetusa_14.incampaign_tmp_js_creative_match_deduped b
+    --     gaintheory_us_targetusa_14.incampaign_tmp_creative_match_deduped b
     -- ON
     --     a.rt_creative_id = b.rt_creative_id
     -- WHERE
@@ -297,7 +298,7 @@ def main():
     print(start_date, end_date)
 
     schema_name = 'gaintheory_us_targetusa_14'
-    tmp_table = 'incampaign_tmp_js_creative_match_deduped'
+    tmp_table = 'incampaign_tmp_creative_match_deduped'
     deduped_table = 'incampaign_rentrak_creative_match_deduped'
 
     flag_table = 'incampaign_process_switches'
@@ -350,6 +351,7 @@ def main():
         body = notify_success(deduped_table)
         send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
         print("Notified the team that no further action on their part is required")
+
 
 if __name__ == "__main__":
     main()
