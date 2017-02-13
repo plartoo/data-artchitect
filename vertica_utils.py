@@ -44,6 +44,37 @@ def get_row_count(cursor, table_name, schema_name, filter=';'):
     return [-1]
 
 
+def get_date_range(cursor, table_name, schema_name, date_column_name, min_or_max='max'):
+    if min_or_max == 'max':
+        sql = ('SELECT MAX(' + date_column_name + ') FROM ' + schema_name + '.' + table_name + ';')
+    elif min_or_max == 'min':
+        sql = ('SELECT MIN(' + date_column_name + ') FROM ' + schema_name + '.' + table_name + ';')
+    else:
+        sql = ('SELECT DISTINCT(' + date_column_name + ') FROM ' + schema_name + '.' + table_name + 'ORDER BY 1;')
+
+    if table_or_view_exists(cursor, table_name, schema_name):
+        try:
+            cursor.execute(sql)
+            date = cursor.fetchall()
+            date = [-1] if not date else date[0]
+            return date
+        except:
+            raise
+    return [-1]
+
+
+def get_min_date(cursor, table_name, schema_name, date_column_name):
+    sql = ('SELECT MAX(' + date_column_name + ') FROM ' + schema_name + '.' + table_name)
+    if table_or_view_exists(cursor, table_name, schema_name):
+        try:
+            cursor.execute(sql)
+            row_cnt = cursor.fetchall()
+            row_cnt = [-1] if not row_cnt else row_cnt[0]
+            return row_cnt
+        except:
+            raise
+    return [-1]
+
 def get_row_count_by_filter(cursor, filter, table_name, schema_name):
     return get_row_count(cursor, table_name, schema_name, filter)
 
