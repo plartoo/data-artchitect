@@ -21,7 +21,7 @@ def main():
     s3_folder = 'FilesForDatamart/StoreSales/'
     data_source_name = 'InCampaign Store Sales (DM 3128)'
     table_and_actions = {
-        'incampaign_storesales_zipcode':
+        'incampaign_storesales':
             [
                 {'cmd': ['python', ROOT_FOLDER + 'run_vsql.py', SQL_SCRIPT_FOLDER + 'process_storesales.sql']},
                 # {'cmd': ['python', ROOT_FOLDER + 'archive_files.py', 'FilesForDatamart/StoreSales/',

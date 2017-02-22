@@ -16,14 +16,14 @@ CREATE TABLE
         SELECT
             'Geo_'||zipcode  AS Geography,
             'Target'         AS Product,
-            division         AS Campaign,
+            'Total'         AS Campaign,
             'store_sales'      AS VariableName,
             'Total'          AS Outlet,
             'Total'          AS Creative,
             event_date::DATE AS Period,
-            SUM(store_sales)   AS VariableValue
+            SUM(store_total_sales)   AS VariableValue
         FROM
-            gaintheory_us_targetusa_14.incampaign_storesales_zipcode
+            gaintheory_us_targetusa_14.incampaign_storesales
         WHERE
             event_date >= (GETDATE()-60)::DATE
         GROUP BY
