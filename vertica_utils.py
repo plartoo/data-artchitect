@@ -44,6 +44,10 @@ def get_row_count(cursor, table_name, schema_name, filter=';'):
     return [-1]
 
 
+def get_row_count_by_filter(cursor, filter, table_name, schema_name):
+    return get_row_count(cursor, table_name, schema_name, filter)
+
+
 def get_date_range(cursor, table_name, schema_name, date_column_name, min_or_max='max'):
     if min_or_max == 'max':
         sql = ('SELECT MAX(' + date_column_name + ') FROM ' + schema_name + '.' + table_name + ';')
@@ -75,8 +79,15 @@ def get_min_date(cursor, table_name, schema_name, date_column_name):
             raise
     return [-1]
 
-def get_row_count_by_filter(cursor, filter, table_name, schema_name):
-    return get_row_count(cursor, table_name, schema_name, filter)
+
+def get_rows(cursor, sql):
+    try:
+        cursor.execute(sql)
+        rows = cursor.fetchall()
+        rows = [] if not rows else rows
+        return rows
+    except:
+        raise
 
 
 def rename_table(cursor, old_name, new_name, schema_name):
