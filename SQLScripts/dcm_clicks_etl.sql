@@ -39,11 +39,8 @@ CREATE TABLE
         SELECT
             'Geo'||zip_postal_code AS Geography,
             'Target'               AS Product,
-            'Total'                AS Campaign,
-            'Search_click'         AS VariableName,
-            'Total'                AS Outlet,
             CASE
-                WHEN position('Search' IN placement) = 0 
+                WHEN position('Search' IN placement) = 0
                 AND position('(' IN placement) = 0
                 THEN REGEXP_REPLACE(REGEXP_REPLACE(placement,'[^\w\s]',''),'[ ]+', '') -- get anything inside parens like "Target Bulk 39 (Mobile+Phones) => Mobile+Phones"
                 ELSE -- or "Video+Games+Search => VideoGames"
@@ -54,7 +51,10 @@ CREATE TABLE
                         ELSE REGEXP_REPLACE(REGEXP_REPLACE(LEFT(placement, position('Search' IN
                             placement) -1),'[^\w\s]',''),'[ ]+', '')
                     END
-            END          AS Creative,
+            END          AS Campaign,
+            'Search_click'         AS VariableName,
+            'Total'                AS Outlet,
+            'Total'                AS Creative,
             c.event_date AS Period,
             SUM(clicks)  AS VariableValue
         FROM
