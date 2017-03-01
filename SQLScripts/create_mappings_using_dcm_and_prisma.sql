@@ -104,17 +104,17 @@ CREATE TABLE
             d.device,
             COUNT(*) impr
         FROM
-            gaintheory_us_targetusa_14.TargetDFA2_impression a
+            gaintheory_us_targetusa_14.TargetDFA2_impression AS a
         INNER JOIN
-            gaintheory_us_targetusa_14.incampaign_dfa_operating_systems_combined b
+            gaintheory_us_targetusa_14.incampaign_dfa_operating_systems_combined AS b
         ON
             a.operating_system_id = b.operating_system_id
         INNER JOIN
-            gaintheory_us_targetusa_14.incampaign_dfa_browsers_combined c
+            gaintheory_us_targetusa_14.incampaign_dfa_browsers_combined AS c
         ON
             a.browser_platform_id = c.browser_platform_id
         INNER JOIN
-            gaintheory_us_targetusa_14.incampaign_dcm_os_browser_to_device_mappings d
+            gaintheory_us_targetusa_14.incampaign_dcm_os_browser_to_device_mappings AS d
         ON
             b.operating_system = d.operating_system
         AND c.browser_platform = d.browser_platform
@@ -146,17 +146,17 @@ CREATE TABLE
             d.device,
             COUNT(*) impr
         FROM
-            gaintheory_us_targetusa_14.TargetDFA2_click a
+            gaintheory_us_targetusa_14.TargetDFA2_click AS a
         INNER JOIN
-            gaintheory_us_targetusa_14.incampaign_dfa_operating_systems_combined b
+            gaintheory_us_targetusa_14.incampaign_dfa_operating_systems_combined AS b
         ON
             a.operating_system_id = b.operating_system_id
         INNER JOIN
-            gaintheory_us_targetusa_14.incampaign_dfa_browsers_combined c
+            gaintheory_us_targetusa_14.incampaign_dfa_browsers_combined AS c
         ON
             a.browser_platform_id = c.browser_platform_id
         INNER JOIN
-            gaintheory_us_targetusa_14.incampaign_dcm_os_browser_to_device_mappings d
+            gaintheory_us_targetusa_14.incampaign_dcm_os_browser_to_device_mappings AS d
         ON
             b.operating_system = d.operating_system
         AND c.browser_platform = d.browser_platform
@@ -209,7 +209,7 @@ CREATE TABLE
                     device ,
                     impr
                 FROM
-                    gaintheory_us_targetusa_14.incampaign_tmp_dcm_clicks_mapped_to_device ) a
+                    gaintheory_us_targetusa_14.incampaign_tmp_dcm_clicks_mapped_to_device ) AS a
         GROUP BY
             advertiser_id ,
             campaign_id ,
@@ -332,7 +332,7 @@ CREATE TABLE
                     AdserverCampaignId,
                     ProductName
                 FROM
-                    gaintheory_us_targetusa_14.incampaign_dcm_mapping_reference_from_prisma ) p
+                    gaintheory_us_targetusa_14.incampaign_dcm_mapping_reference_from_prisma ) AS p
         ON
             v.campaign_id = p.AdserverCampaignId
             --            AND
@@ -371,31 +371,26 @@ CREATE TABLE
                         WHEN dcm_advertiser='Target - DVM'
                         THEN 'DVM'
                         ELSE
-                            CASE
-                                WHEN dcm_impr < 1000
-                                THEN 'OTHERS'
-                                ELSE
                                     CASE
-                                        WHEN dcm_campaign = 'Email Impression Tarcker'
-                                        THEN 'Email Impression Tarcker'
+                                        WHEN dcm_campaign = 'Email Impression Tracker'
+                                        THEN 'Email Impression Tracker'
                                         WHEN dcm_campaign = '2016 Wedding (24255)'
                                         THEN 'WEDDING'
                                         WHEN dcm_campaign LIKE '%BidManager%'
                                         THEN 'BidManager'
                                         ELSE 'OTHERS'
                                     END
-                            END
                     END
             END AS campaign
         FROM
             gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma
     );
 
-/* Do the Publisher and Tactic mapping */
+/* Do the Publisher mapping */
 DROP TABLE
-    IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_publisher_tactic_mapped;
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_publisher_mapped;
 CREATE TABLE
-    gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_publisher_tactic_mapped AS
+    gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_publisher_mapped AS
     (
         SELECT
             v.dcm_advertiser ,
@@ -416,35 +411,70 @@ CREATE TABLE
             v.prisma_adserver_campaign_id ,
             v.prisma_product_name ,
             v.campaign ,
-            p.AdserverPlacementId AS prisma_adserver_placement_id ,
             p.SupplierName        AS prisma_supplier_name ,
-            p.TacticAttribution   AS prisma_tactic_attribution ,
             CASE
-                WHEN p.AdserverPlacementId IS NOT NULL
-                THEN REGEXP_REPLACE( REGEXP_REPLACE( p.SupplierName,
-                    '[,\!\.]|(\sADV\s)|(COM)|(TV)|(LLC)|(INC)|(NETWORK)|(NTWK)', '', 1, 0, 'i') ,
-                    '\s*', '', 1, 0, 'i')
-                ELSE UPPER(CAST(REGEXP_REPLACE( REGEXP_REPLACE( v.dcm_site,
-                    '[,\!\.]|(\sADV\s)|(COM)|(TV)|(LLC)|(INC)|(NETWORK)|(NTWK)', '', 1, 0, 'i') ,
-                    '\s*', '', 1, 0, 'i') AS VARCHAR(500))) -- if we don't cast this to VARCHAR(500
-                    -- ), UPPER() wouldn't be happy worrying that it might cause character size
-                    -- overflow
-            END AS publisher ,
+                WHEN p.SupplierName IS NOT NULL
+                THEN
+                        CASE
+                                WHEN v.dcm_site_id = '3104107' THEN 'TARGET-TMN'
+                                WHEN v.dcm_site_id = '2784410' THEN 'TARGET-VIDEO'
+                                WHEN v.dcm_site ilike '%bidmanager%' THEN 'BIDMANAGER'
+                                ELSE
+                                REGEXP_REPLACE( REGEXP_REPLACE( p.SupplierName,
+                                    '[,\!\.]|(\sADV\s)|(COM)|(TV)|(LLC)|(INC)|(NETWORK)|(NTWK)', '', 1, 0, 'i') ,
+                                    '\s*', '', 1, 0, 'i')
+                        END
+                ELSE 
+                        CASE
+                                WHEN v.dcm_site_id = '3104107' THEN 'TARGET-TMN'
+                                WHEN v.dcm_site_id = '2784410' THEN 'TARGET-VIDEO'
+                                WHEN v.dcm_site ilike '%bidmanager%' THEN 'BIDMANAGER'
+                                ELSE
+                                UPPER(CAST(REGEXP_REPLACE( REGEXP_REPLACE( v.dcm_site,
+                                    '[,\!\.]|(\sADV\s)|(COM)|(TV)|(LLC)|(INC)|(NETWORK)|(NTWK)', '', 1, 0, 'i') ,
+                                    '\s*', '', 1, 0, 'i') AS VARCHAR(500))) -- if we don't cast this to VARCHAR(500
+                                    -- ), UPPER() wouldn't be happy worrying that it might cause character size
+                                    -- overflow
+                        END
+            END AS publisher
+        FROM
+            gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_campaign_mapped AS v
+            
+        LEFT JOIN
+            (
+                SELECT DISTINCT -- we'll use DCM table's site names as reference
+                    a.dcm_site_id, 
+                    SupplierName
+                FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_campaign_mapped a
+                INNER JOIN gaintheory_us_targetusa_14.incampaign_dcm_mapping_reference_from_prisma b
+                ON a.dcm_placement_id = b.AdserverPlacementId) AS p
+        ON
+            v.dcm_site_id = p.dcm_site_id
+    );
+
+/* Do the Tactic mapping */
+DROP TABLE
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_tactic_mapped;
+CREATE TABLE
+    gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_tactic_mapped AS
+    (
+        SELECT
+            v.*,
+            p.AdserverPlacementId AS prisma_adserver_placement_id ,
+            p.TacticAttribution   AS prisma_tactic_attribution ,
             CASE
                 WHEN p.AdserverPlacementId IS NOT NULL
                 THEN p.TacticAttribution
                 ELSE 'Others'
             END AS tactic
         FROM
-            gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_campaign_mapped AS v
+            gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_publisher_mapped AS v
         LEFT JOIN
             (
                 SELECT DISTINCT
                     AdserverPlacementId,
-                    SupplierName,
                     TacticAttribution
-                FROM
-                    gaintheory_us_targetusa_14.incampaign_dcm_mapping_reference_from_prisma ) p
+                FROM gaintheory_us_targetusa_14.incampaign_dcm_mapping_reference_from_prisma ) AS p
         ON
             v.dcm_placement_id = p.AdserverPlacementId
     );
