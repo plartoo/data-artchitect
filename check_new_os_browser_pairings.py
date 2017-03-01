@@ -65,6 +65,7 @@ def get_existing_os_browser_device_mappings():
             gaintheory_us_targetusa_14.incampaign_dcm_os_browser_to_device_mappings
     """
 
+
 def main():
     logger = Logger(__file__)
     start_time = time.ctime()
@@ -111,6 +112,7 @@ def main():
     except Exception as err:
         print("Unknown Error Occurred!")
         send_error_email(err)
+
 
 if __name__ == "__main__":
     print("\n\n*****DO NOT KILL this program*****\n")

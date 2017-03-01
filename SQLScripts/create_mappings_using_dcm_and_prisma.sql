@@ -1,9 +1,95 @@
--- BEFORE this, we should run
---      create_dcm_browsers_reference
---      create_dcm_operating_systems_reference
---and
---      python script to find new device pairings
--- Then have a flag ready before this script is run
+/*
+This script generates mappings of Campaign, Channel, Device, Message,
+Publisher and Tactic from DCM click and impression data.
+
+Author: Phyo Thiha
+Last Modified Date: Feb 28, 2017
+*/
+
+
+/*
+Combine the operating system info from DFA2 and DFA (old).
+DFA2 os information takes precedence over that of DFA (old).
+This script should be run BEFORE 'create_dcm_mapping_reference_from_vault'
+script because the latter uses 'incampaign_dfa_operating_systems_combined'
+to do its mapping.
+*/
+DROP TABLE
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_dfa_operating_systems_combined;
+
+CREATE TABLE
+    gaintheory_us_targetusa_14.incampaign_dfa_operating_systems_combined AS
+    (
+        SELECT
+            operating_system_id,
+            operating_system
+        FROM
+            gaintheory_us_targetusa_14.TargetDFA2_operating_systems
+    );
+
+MERGE
+INTO
+    gaintheory_us_targetusa_14.incampaign_dfa_operating_systems_combined AS t
+USING
+    gaintheory_us_targetusa_14.dfa_operating_systems AS s
+ON
+    t.operating_system_id = s.os_id
+WHEN NOT MATCHED
+    THEN
+INSERT
+    (
+        operating_system_id,
+        operating_system
+    )
+    VALUES
+    (
+        s.os_id,
+        s.os
+    );
+
+/*
+Script to combine the browser info from DFA2 and DFA (old).
+DFA2 browser information takes precedence over that of DFA (old).
+This script should be run BEFORE 'create_dcm_mapping_reference_from_vault'
+script because the latter uses 'incampaign_dfa_browsers_combined' to do 
+its mapping.
+*/
+DROP TABLE
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_dfa_browsers_combined;
+
+CREATE TABLE
+    gaintheory_us_targetusa_14.incampaign_dfa_browsers_combined AS
+    (
+        SELECT
+            browser_platform_id,
+            browser_platform
+        FROM
+            gaintheory_us_targetusa_14.TargetDFA2_browsers
+    );
+
+MERGE
+INTO
+    gaintheory_us_targetusa_14.incampaign_dfa_browsers_combined AS t
+USING
+    gaintheory_us_targetusa_14.dfa_browsers AS s
+ON
+    t.browser_platform_id = s.browser_id
+WHEN NOT MATCHED
+    THEN
+INSERT
+    (
+        browser_platform_id,
+        browser_platform
+    )
+    VALUES
+    (
+        s.browser_id,
+        s.browser
+    );
+
+/* 
+Create impression table with device info filled by using the OLD/EXISTING device mappings
+*/
 DROP TABLE
     IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_impressions_mapped_to_device;
 CREATE TABLE
@@ -42,6 +128,10 @@ CREATE TABLE
             rendering_id,
             device
     );
+
+/* 
+Create click table with device info filled by using the OLD/EXISTING device mappings
+*/
 DROP TABLE
     IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_clicks_mapped_to_device;
 CREATE TABLE
@@ -80,9 +170,10 @@ CREATE TABLE
             rendering_id,
             device
     );
-    
--- Stack impressions and clicks results because Manoj said some placements
--- exclusively belong to these two tables
+
+/* 
+Stack impression and click tables to cover ALL DCM campaigns and placements
+*/
 DROP TABLE
     IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_clicks_and_impressions_combined;
 CREATE TABLE
@@ -128,6 +219,10 @@ CREATE TABLE
             device
     );
 
+/* 
+Create Vault aggregate base table that will be used to geenrate mappings
+for Campaign, Channel, Message, Publisher and Tactic.
+*/
 DROP TABLE
     IF EXISTS gaintheory_us_targetusa_14.incampaign_dcm_mapping_reference_from_vault;
 CREATE TABLE
@@ -244,7 +339,7 @@ CREATE TABLE
             --            v.dcm_site_id = p.AdserverSiteCode
     );
 
--- Campaign mapping begins
+/* Do the Campaign mapping */
 DROP TABLE
     IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_campaign_mapped;
 CREATE TABLE
@@ -296,7 +391,7 @@ CREATE TABLE
             gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma
     );
 
--- Publisher and Tactic mapping begins
+/* Do the Publisher and Tactic mapping */
 DROP TABLE
     IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_publisher_tactic_mapped;
 CREATE TABLE
