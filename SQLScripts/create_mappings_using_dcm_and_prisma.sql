@@ -314,16 +314,6 @@ CREATE TABLE
             v.site_id_dcm         AS dcm_site_id ,
             p.AdserverCampaignId  AS prisma_adserver_campaign_id ,
             p.ProductName         AS prisma_product_name
-            --            p.Channel               AS prisma_channel ,
-            --            p.ChannelAttribution    AS prisma_channel_attribution ,
-            --            p.ChannelType1          AS prisma_channel_type_1 ,
-            --            p.CostMethod            AS prisma_cost_method ,
-            --            p.InventoryType2        AS prisma_inventory_type_2 ,
-            --            p.PlacementStartDate    AS prisma_placement_start_date ,
-            --            p.PlacementEndDate      AS prisma_placement_end_date ,
-            --            p.Rate                  AS prisma_rate ,
-            --            p.RichMediaTypesFormat  AS prisma_rich_media_types_format ,
-            --            p.TargetingAudienceType AS prisma_targeting_audience_type
         FROM
             gaintheory_us_targetusa_14.incampaign_dcm_mapping_reference_from_vault AS v
         LEFT JOIN
@@ -335,8 +325,6 @@ CREATE TABLE
                     gaintheory_us_targetusa_14.incampaign_dcm_mapping_reference_from_prisma ) AS p
         ON
             v.campaign_id = p.AdserverCampaignId
-            --            AND
-            --            v.dcm_site_id = p.AdserverSiteCode
     );
 
 /* Do the Campaign mapping */
@@ -462,6 +450,7 @@ CREATE TABLE
             v.*,
             p.AdserverPlacementId AS prisma_adserver_placement_id ,
             p.TacticAttribution   AS prisma_tactic_attribution ,
+            p.ChannelAttribution AS prisma_channel_attribution,
             CASE
                 WHEN p.AdserverPlacementId IS NOT NULL
                 THEN p.TacticAttribution
@@ -473,9 +462,49 @@ CREATE TABLE
             (
                 SELECT DISTINCT
                     AdserverPlacementId,
-                    TacticAttribution
+                    TacticAttribution,
+                    ChannelAttribution
                 FROM gaintheory_us_targetusa_14.incampaign_dcm_mapping_reference_from_prisma ) AS p
         ON
             v.dcm_placement_id = p.AdserverPlacementId
     );
 
+/* Do the Channel mapping */
+DROP TABLE
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_channel_mapped;
+CREATE TABLE
+    gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_channel_mapped AS
+    (
+        SELECT
+            v.*,
+            ISNULL(MAX(v.inferred_device) OVER (PARTITION BY v.dcm_placement_id), 'Cross Device') AS channel
+        FROM
+                (
+                SELECT *
+                , ((dcm_impr/ SUM(dcm_impr::float) OVER (PARTITION BY dcm_placement_id)) * 100) AS percentage_of_device_by_placement
+                , 
+                    CASE
+                        WHEN (dcm_impr/ SUM(dcm_impr::float) OVER (PARTITION BY dcm_placement_id)) >= 0.95
+                        THEN dcm_device
+                    END AS inferred_device
+                    FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_tactic_mapped)
+                    AS v
+    );
+
+
+/* Do the Message mapping */
+DROP TABLE
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapped;
+CREATE TABLE
+    gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapped AS
+    (
+        SELECT
+            v.*,
+            CASE
+                WHEN INSTR(v.dcm_creative,'|') > 0 THEN REGEXP_REPLACE(v.dcm_creative,'^(.+?)\|.*', '\1', 1, 0, 'i')
+                WHEN INSTR(v.dcm_creative,'_') > 0 THEN REGEXP_REPLACE(v.dcm_creative,'^(.*?)_.*', '\1', 1, 0, 'i')
+                WHEN v.dcm_creative = 'invisible.gif' THEN 'Site Served'
+                ELSE 'Others'
+        END AS message
+        FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_channel_mapped AS v
+    );
