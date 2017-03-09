@@ -477,7 +477,7 @@ CREATE TABLE
     (
         SELECT
             v.*,
-            ISNULL(MAX(v.inferred_device) OVER (PARTITION BY v.dcm_placement_id), 'Cross Device') AS channel
+            COALESCE(prisma_channel_attribution,COALESCE(MAX(v.inferred_device) OVER (PARTITION BY v.dcm_placement_id), 'Crossdevice')) AS channel
         FROM
                 (
                 SELECT *
@@ -490,7 +490,6 @@ CREATE TABLE
                     FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_tactic_mapped)
                     AS v
     );
-
 
 /* Do the Message mapping */
 DROP TABLE
