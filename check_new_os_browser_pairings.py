@@ -40,6 +40,10 @@ def send_error_email(error):
 
 
 def get_unmapped_os_browser_pairings():
+    """
+    SQL script, 'create_mappings_using_dcm_and_prisma', will generate table
+    'incampaign_dcm_mapping_reference_from_vault', which is used in the query below.
+    """
     return """
         SELECT DISTINCT
             operating_system,
@@ -117,9 +121,13 @@ def main():
 if __name__ == "__main__":
     print("\n\n*****DO NOT KILL this program*****\n")
     print("If you accidentally or intentionally killed this program, please rerun it")
-    print("This program runs processes everyday at 11AM EST")
+    print("This program runs processes everyday at 12PM EST")
 
-    schedule.every().friday.at("12:00").do(main)
+    # PRISMA data will be transferred to FTP at 10AM on everyday
+    # Vault will pick PRISMA data from FTP via 'InCampaign_DCM_Mapping_Reference_From_PRISMA' feed at 11AM everyday
+    # We will run 'create_mappings_using_dcm_and_prisma' SQL script at 12PM EST everyday
+    # We'll run this script at 1PM EST everyday
+    schedule.every().day.at("13:00").do(main)
 
     while True:
         schedule.run_pending()
