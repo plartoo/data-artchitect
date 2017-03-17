@@ -491,19 +491,60 @@ CREATE TABLE
                     AS v
     );
 
-/* Do the Message mapping */
+/* Do the Message mapping
+Step 1: assign Others and extract if it meets Manoj's criteria
+*/
 DROP TABLE
-    IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapped;
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping_step1;
 CREATE TABLE
-    gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapped AS
+    gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping_step1 AS
     (
         SELECT
             v.*,
             CASE
-                WHEN INSTR(v.dcm_creative,'|') > 0 THEN REGEXP_REPLACE(v.dcm_creative,'^(.+?)\|.*', '\1', 1, 0, 'i')
-                WHEN INSTR(v.dcm_creative,'_') > 0 THEN REGEXP_REPLACE(v.dcm_creative,'^(.*?)_.*', '\1', 1, 0, 'i')
+                WHEN REGEXP_COUNT(v.dcm_creative,'\|') = 4 THEN REGEXP_REPLACE(v.dcm_creative,'^(.+?)\|.*', '\1', 1, 0, 'i')
+                WHEN REGEXP_COUNT(v.dcm_creative,'_') = 4 THEN REGEXP_REPLACE(v.dcm_creative,'^(.*?)_.*', '\1', 1, 0, 'i')
                 WHEN v.dcm_creative = 'invisible.gif' THEN 'Site Served'
                 ELSE 'Others'
-        END AS message
+        END AS message_draft
         FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_channel_mapped AS v
+    );
+/* Message Mapping
+Step 2:
+*/
+/* Do the Message mapping
+Step 1: assign Others and extract if it meets Manoj's criteria
+*/
+DROP TABLE
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping;
+CREATE TABLE
+    gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping AS
+    (
+        SELECT
+            c.*,
+            (
+                CASE
+                    WHEN others_flag >= 1
+                    THEN 'Others'
+                    ELSE message_draft
+                END) AS message
+        FROM
+            (
+                SELECT
+                    b.*,
+                    SUM(
+                        CASE
+                            WHEN message_draft = 'Others'
+                            AND percentage_of_impressions_by_campaign > 30.0 -- threshold set by Manoj
+                            THEN 1
+                            ELSE 0
+                        END) over (partition BY dcm_campaign_id) AS others_flag
+                FROM
+                    (
+                        SELECT
+                        a.*
+                        , (SUM(dcm_impr::FLOAT) OVER (PARTITION BY dcm_campaign_id, message_draft) / SUM(dcm_impr::FLOAT) OVER (PARTITION BY dcm_campaign_id) * 100) AS percentage_of_impressions_by_campaign
+                        FROM incampaign_tmp_dcm_lj_prisma_message_mapping_step1 AS a
+                    ) b
+             ) c
     );
