@@ -186,6 +186,7 @@ CREATE TABLE
             site_id_dcm ,
             rendering_id ,
             device ,
+            from_impression_table ,
             SUM(impr) AS impr
         FROM
             (
@@ -196,6 +197,7 @@ CREATE TABLE
                     site_id_dcm ,
                     rendering_id ,
                     device ,
+                    1 as from_impression_table,
                     impr
                 FROM
                     gaintheory_us_targetusa_14.incampaign_tmp_dcm_impressions_mapped_to_device
@@ -207,6 +209,7 @@ CREATE TABLE
                     site_id_dcm ,
                     rendering_id ,
                     device ,
+                    0 as from_impression_table,
                     impr
                 FROM
                     gaintheory_us_targetusa_14.incampaign_tmp_dcm_clicks_mapped_to_device ) AS a
@@ -216,8 +219,13 @@ CREATE TABLE
             placement_id ,
             site_id_dcm ,
             rendering_id ,
-            device
+            device ,
+            from_impression_table
     );
+
+
+-- Mark stuff from IMPRS taable as 1
+-- ONLY Calculate percentage based on that flag for message and then do the rest
 
 /* 
 Create Vault aggregate base table that will be used to geenrate mappings
@@ -263,6 +271,7 @@ CREATE TABLE
                                                     site_id_dcm ,
                                                     rendering_id ,
                                                     device ,
+                                                    from_impression_table ,
                                                     impr
                                                 FROM
                                                     gaintheory_us_targetusa_14.incampaign_tmp_dcm_clicks_and_impressions_combined
@@ -306,6 +315,7 @@ CREATE TABLE
             v.creative            AS dcm_creative ,
             v.creative_id         AS dcm_creative_id ,
             v.device              AS dcm_device,
+            v.from_impression_table AS dcm_from_impression_table ,
             v.impr                AS dcm_impr ,
             v.placement           AS dcm_placement ,
             v.placement_id        AS dcm_placement_id ,
@@ -343,6 +353,7 @@ CREATE TABLE
             dcm_creative ,
             dcm_creative_id ,
             dcm_device ,
+            dcm_from_impression_table ,
             dcm_impr ,
             dcm_placement ,
             dcm_placement_id ,
@@ -390,6 +401,7 @@ CREATE TABLE
             v.dcm_creative ,
             v.dcm_creative_id ,
             v.dcm_device ,
+            v.dcm_from_impression_table ,
             v.dcm_impr ,
             v.dcm_placement ,
             v.dcm_placement_id ,
@@ -502,13 +514,14 @@ CREATE TABLE
         SELECT
             v.*,
             CASE
-                WHEN REGEXP_COUNT(v.dcm_creative,'\|') = 4 THEN REGEXP_REPLACE(v.dcm_creative,'^(.+?)\|.*', '\1', 1, 0, 'i')
-                WHEN REGEXP_COUNT(v.dcm_creative,'_') = 4 THEN REGEXP_REPLACE(v.dcm_creative,'^(.*?)_.*', '\1', 1, 0, 'i')
-                WHEN v.dcm_creative = 'invisible.gif' THEN 'Site Served'
+                WHEN REGEXP_COUNT(v.dcm_creative,'\|') = 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.+?)\|.*', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
+                WHEN REGEXP_COUNT(v.dcm_creative,'_') = 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.*?)_.*', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
+                --WHEN v.dcm_creative = 'invisible.gif' THEN 'Site Served'
                 ELSE 'Others'
         END AS message_draft
         FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_channel_mapped AS v
     );
+
 /* Message Mapping
 Step 2:
 */
@@ -538,12 +551,14 @@ CREATE TABLE
                             AND percentage_of_impressions_by_campaign > 30.0 -- threshold set by Manoj
                             THEN 1
                             ELSE 0
-                        END) over (partition BY dcm_campaign_id) AS others_flag
+                        END) over (partition BY campaign, dcm_from_impression_table) AS others_flag
+                        --END) over (partition BY dcm_campaign_id) AS others_flag
                 FROM
                     (
                         SELECT
                         a.*
-                        , (SUM(dcm_impr::FLOAT) OVER (PARTITION BY dcm_campaign_id, message_draft) / SUM(dcm_impr::FLOAT) OVER (PARTITION BY dcm_campaign_id) * 100) AS percentage_of_impressions_by_campaign
+                        , (SUM(dcm_impr::FLOAT) OVER (PARTITION BY campaign, message_draft, dcm_from_impression_table) / SUM(dcm_impr::FLOAT) OVER (PARTITION BY campaign, dcm_from_impression_table) * 100) AS percentage_of_impressions_by_campaign
+--                        , (SUM(dcm_impr::FLOAT) OVER (PARTITION BY dcm_campaign_id, message_draft) / SUM(dcm_impr::FLOAT) OVER (PARTITION BY dcm_campaign_id) * 100) AS percentage_of_impressions_by_campaign
                         FROM incampaign_tmp_dcm_lj_prisma_message_mapping_step1 AS a
                     ) b
              ) c
