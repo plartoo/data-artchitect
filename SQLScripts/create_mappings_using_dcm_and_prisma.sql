@@ -514,8 +514,8 @@ CREATE TABLE
         SELECT
             v.*,
             CASE
-                WHEN REGEXP_COUNT(v.dcm_creative,'\|') = 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.+?)\|.*', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
-                WHEN REGEXP_COUNT(v.dcm_creative,'_') = 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.*?)_.*', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
+                WHEN REGEXP_COUNT(v.dcm_creative,'\|') >= 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.+?)\|.*', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
+                WHEN REGEXP_COUNT(v.dcm_creative,'_') >= 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.*?)_.*', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
                 --WHEN v.dcm_creative = 'invisible.gif' THEN 'Site Served'
                 ELSE 'Others'
         END AS message_draft
