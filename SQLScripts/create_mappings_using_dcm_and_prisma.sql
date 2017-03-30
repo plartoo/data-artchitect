@@ -548,7 +548,7 @@ CREATE TABLE
                     SUM(
                         CASE
                             WHEN message_draft = 'Others'
-                            AND percentage_of_impressions_by_campaign > 30.0 -- threshold set by Manoj
+                            AND percentage_of_impressions_by_campaign > 35.0 -- threshold set by Manoj
                             THEN 1
                             ELSE 0
                         END) over (partition BY campaign, dcm_from_impression_table) AS others_flag
@@ -563,3 +563,36 @@ CREATE TABLE
                     ) b
              ) c
     );
+
+/* Create final mapping table*/
+DROP TABLE
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_digital_metadata;
+CREATE TABLE
+    gaintheory_us_targetusa_14.incampaign_digital_metadata  AS
+    (
+            SELECT DISTINCT
+                campaign
+                ,channel
+                ,dcm_advertiser_id
+                ,dcm_campaign_id
+                ,dcm_creative_id
+                ,dcm_placement_id
+                ,dcm_rendering_id
+                ,dcm_site_id
+                ,message
+                ,message_draft
+                ,publisher
+            FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping
+    );
+
+/* Clean up intermediate tables */
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_impressions_mapped_to_device;
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_clicks_mapped_to_device;
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_clicks_and_impressions_combined;
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_dcm_mapping_reference_from_vault;
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma;
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_campaign_mapped;
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_publisher_mapped;
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_tactic_mapped;
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_channel_mapped;
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping_step1;
