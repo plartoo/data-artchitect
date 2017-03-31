@@ -3,7 +3,7 @@ This script generates mappings of Campaign, Channel, Device, Message,
 Publisher and Tactic from DCM click and impression data.
 
 Author: Phyo Thiha
-Last Modified Date: Feb 28, 2017
+Last Modified Date: Mar 31, 2017
 */
 
 
@@ -522,11 +522,8 @@ CREATE TABLE
         FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_channel_mapped AS v
     );
 
-/* Message Mapping
-Step 2:
-*/
-/* Do the Message mapping
-Step 1: assign Others and extract if it meets Manoj's criteria
+/* 
+Step 2: Do the Message mapping
 */
 DROP TABLE
     IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping;
@@ -559,7 +556,7 @@ CREATE TABLE
                         a.*
                         , (SUM(dcm_impr::FLOAT) OVER (PARTITION BY campaign, message_draft, dcm_from_impression_table) / SUM(dcm_impr::FLOAT) OVER (PARTITION BY campaign, dcm_from_impression_table) * 100) AS percentage_of_impressions_by_campaign
 --                        , (SUM(dcm_impr::FLOAT) OVER (PARTITION BY dcm_campaign_id, message_draft) / SUM(dcm_impr::FLOAT) OVER (PARTITION BY dcm_campaign_id) * 100) AS percentage_of_impressions_by_campaign
-                        FROM incampaign_tmp_dcm_lj_prisma_message_mapping_step1 AS a
+                        FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping_step1 AS a
                     ) b
              ) c
     );
