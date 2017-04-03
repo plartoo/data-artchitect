@@ -561,11 +561,10 @@ CREATE TABLE
              ) c
     );
 
-/* Create final mapping table*/
 DROP TABLE
-    IF EXISTS gaintheory_us_targetusa_14.incampaign_digital_metadata;
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_impressions;
 CREATE TABLE
-    gaintheory_us_targetusa_14.incampaign_digital_metadata  AS
+    gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_impressions  AS
     (
             SELECT DISTINCT
                 campaign
@@ -573,13 +572,100 @@ CREATE TABLE
                 ,dcm_advertiser_id
                 ,dcm_campaign_id
                 ,dcm_creative_id
+                ,dcm_from_impression_table
                 ,dcm_placement_id
                 ,dcm_rendering_id
                 ,dcm_site_id
                 ,message
                 ,message_draft
                 ,publisher
-            FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping
+            FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping AS a
+            WHERE a.dcm_from_impression_table = 1
+    );
+
+DROP TABLE
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_clicks;
+CREATE TABLE
+    gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_clicks  AS
+    (
+            SELECT DISTINCT
+                campaign
+                ,channel
+                ,dcm_advertiser_id
+                ,dcm_campaign_id
+                ,dcm_creative_id
+                ,dcm_from_impression_table
+                ,dcm_placement_id
+                ,dcm_rendering_id
+                ,dcm_site_id
+                ,message
+                ,message_draft
+                ,publisher
+            FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping AS a
+            WHERE a.dcm_from_impression_table = 0
+    );
+
+/* Apply message info from impressions table to clicks table (only for the ones that can be matched by rendering_id. */
+UPDATE gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_clicks t
+SET message = s.message
+FROM gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_impressions s
+WHERE t.dcm_rendering_id = s.dcm_rendering_id;
+
+
+/* Create final mapping table by combing both impression and click tables. */
+DROP TABLE
+    IF EXISTS gaintheory_us_targetusa_14.incampaign_digital_metadata;
+CREATE TABLE
+    gaintheory_us_targetusa_14.incampaign_digital_metadata  AS
+    (
+        SELECT DISTINCT
+        campaign
+        ,channel
+        ,dcm_advertiser_id
+        ,dcm_campaign_id
+        ,dcm_creative_id
+        ,dcm_from_impression_table
+        ,dcm_placement_id
+        ,dcm_rendering_id
+        ,dcm_site_id
+        ,message
+        ,message_draft
+        ,publisher
+        FROM (
+                    (
+                    SELECT 
+                        campaign
+                        ,channel
+                        ,dcm_advertiser_id
+                        ,dcm_campaign_id
+                        ,dcm_creative_id
+                        ,dcm_from_impression_table
+                        ,dcm_placement_id
+                        ,dcm_rendering_id
+                        ,dcm_site_id
+                        ,message
+                        ,message_draft
+                        ,publisher
+                    FROM gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_impressions AS a
+                    )
+                    UNION ALL 
+                    (
+                    SELECT 
+                        campaign
+                        ,channel
+                        ,dcm_advertiser_id
+                        ,dcm_campaign_id
+                        ,dcm_creative_id
+                        ,dcm_from_impression_table
+                        ,dcm_placement_id
+                        ,dcm_rendering_id
+                        ,dcm_site_id
+                        ,message
+                        ,message_draft
+                        ,publisher
+                    FROM gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_clicks AS b
+                    )
+            ) c
     );
 
 /* Clean up intermediate tables */
@@ -593,3 +679,4 @@ DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_pub
 DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_tactic_mapped;
 DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_channel_mapped;
 DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping_step1;
+
