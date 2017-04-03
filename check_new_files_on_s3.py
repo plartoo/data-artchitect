@@ -66,7 +66,7 @@ def main():
     schema_name = 'gaintheory_us_targetusa_14'
 
     # Note: make sure to configure auth credentials as shown here: https://boto3.readthedocs.io/en/latest/guide/quickstart.html
-    s3_folders_and_feeds = {'Facebook/': 'InCampaign_Facebook_Impressions_And_Spend',
+    s3_folders_and_feeds = {'Facebook/': 'InCampaign_Facebook_Impressions, and InCampaign_Facebook_Spend',
                            'RenTrak/SpotID/': 'Incampaign_Rentrak_SpotID',
                            'RenTrak/ZipCode/': 'Incampaign_Rentrak_ZipCode',
                            'TargetInbound/StoreSales/': 'InCampaign_StoreSales_Zipcode',
