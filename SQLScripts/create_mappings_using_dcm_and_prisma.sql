@@ -102,7 +102,8 @@ CREATE TABLE
             a.site_id_dcm,
             a.rendering_id,
             d.device,
-            COUNT(*) impr
+            COUNT(*) impr,
+            0 clicks
         FROM
             gaintheory_us_targetusa_14.TargetDFA2_impression AS a
         INNER JOIN
@@ -144,7 +145,8 @@ CREATE TABLE
             a.site_id_dcm,
             a.rendering_id,
             d.device,
-            COUNT(*) impr
+            0 AS impr,
+            COUNT(*) clicks
         FROM
             gaintheory_us_targetusa_14.TargetDFA2_click AS a
         INNER JOIN
@@ -186,8 +188,9 @@ CREATE TABLE
             site_id_dcm ,
             rendering_id ,
             device ,
-            from_impression_table ,
-            SUM(impr) AS impr
+            SUM(from_impression_table) AS from_impression_table,
+            SUM(impr) AS impr,
+            SUM(clicks) AS clicks
         FROM
             (
                 SELECT
@@ -198,7 +201,8 @@ CREATE TABLE
                     rendering_id ,
                     device ,
                     1 as from_impression_table,
-                    impr
+                    impr,
+                    clicks
                 FROM
                     gaintheory_us_targetusa_14.incampaign_tmp_dcm_impressions_mapped_to_device
                 UNION ALL
@@ -210,7 +214,8 @@ CREATE TABLE
                     rendering_id ,
                     device ,
                     0 as from_impression_table,
-                    impr
+                    impr,
+                    clicks
                 FROM
                     gaintheory_us_targetusa_14.incampaign_tmp_dcm_clicks_mapped_to_device ) AS a
         GROUP BY
@@ -219,8 +224,7 @@ CREATE TABLE
             placement_id ,
             site_id_dcm ,
             rendering_id ,
-            device ,
-            from_impression_table
+            device
     );
 
 
@@ -272,7 +276,8 @@ CREATE TABLE
                                                     rendering_id ,
                                                     device ,
                                                     from_impression_table ,
-                                                    impr
+                                                    impr,
+                                                    clicks
                                                 FROM
                                                     gaintheory_us_targetusa_14.incampaign_tmp_dcm_clicks_and_impressions_combined
                                             ) a
@@ -317,6 +322,7 @@ CREATE TABLE
             v.device              AS dcm_device,
             v.from_impression_table AS dcm_from_impression_table ,
             v.impr                AS dcm_impr ,
+            v.clicks              AS dcm_clicks ,
             v.placement           AS dcm_placement ,
             v.placement_id        AS dcm_placement_id ,
             v.rendering_id        AS dcm_rendering_id ,
@@ -355,6 +361,7 @@ CREATE TABLE
             dcm_device ,
             dcm_from_impression_table ,
             dcm_impr ,
+            dcm_clicks,
             dcm_placement ,
             dcm_placement_id ,
             dcm_rendering_id ,
@@ -403,6 +410,7 @@ CREATE TABLE
             v.dcm_device ,
             v.dcm_from_impression_table ,
             v.dcm_impr ,
+            v.dcm_clicks,
             v.dcm_placement ,
             v.dcm_placement_id ,
             v.dcm_rendering_id ,
