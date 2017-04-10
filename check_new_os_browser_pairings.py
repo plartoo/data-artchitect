@@ -103,7 +103,7 @@ def main():
         # Send email to tell the team to start manual mapping
         subject = "New Device mappings to fill out for DCM os-browser pairings:"
         body = notify_for_manual_mapping(output_file)
-        Mailer().send_email(DEV_EMAIL_RECIPIENTS, subject, body, file_to_export) #TODO: change email receipients
+        Mailer().send_email(ONSHORE_EMAIL_RECIPIENTS, subject, body, file_to_export) #TODO: change email receipients
         print("Notified the team to add manual mappings")
 
         logger.log_time_taken(start_time, time.ctime())
