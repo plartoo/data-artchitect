@@ -556,13 +556,14 @@ CREATE TABLE
                             AND percentage_of_impressions_by_campaign > 35.0 -- threshold set by Manoj
                             THEN 1
                             ELSE 0
-                        END) over (partition BY campaign, dcm_from_impression_table) AS others_flag
+                        END) over (partition BY campaign) AS others_flag
                         --END) over (partition BY dcm_campaign_id) AS others_flag
                 FROM
                     (
                         SELECT
                         a.*
-                        , (SUM(dcm_impr::FLOAT) OVER (PARTITION BY campaign, message_draft, dcm_from_impression_table) / SUM(dcm_impr::FLOAT) OVER (PARTITION BY campaign, dcm_from_impression_table) * 100) AS percentage_of_impressions_by_campaign
+                        , (SUM(dcm_impr::FLOAT) OVER (PARTITION BY campaign, message_draft) / SUM(dcm_impr::FLOAT) OVER (PARTITION BY campaign) * 100) AS percentage_of_impressions_by_campaign
+                        --, (SUM(dcm_impr::FLOAT) OVER (PARTITION BY campaign, message_draft, dcm_from_impression_table) / SUM(dcm_impr::FLOAT) OVER (PARTITION BY campaign, dcm_from_impression_table) * 100) AS percentage_of_impressions_by_campaign
 --                        , (SUM(dcm_impr::FLOAT) OVER (PARTITION BY dcm_campaign_id, message_draft) / SUM(dcm_impr::FLOAT) OVER (PARTITION BY dcm_campaign_id) * 100) AS percentage_of_impressions_by_campaign
                         FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping_step1 AS a
                     ) b
