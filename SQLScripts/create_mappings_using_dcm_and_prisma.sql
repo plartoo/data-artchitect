@@ -522,8 +522,8 @@ CREATE TABLE
         SELECT
             v.*,
             CASE
-                WHEN REGEXP_COUNT(v.dcm_creative,'\|') >= 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.+?)\|.*', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
-                WHEN REGEXP_COUNT(v.dcm_creative,'_') >= 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.*?)_.*', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
+                WHEN REGEXP_COUNT(v.dcm_creative,'\|') >= 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.+?)\|.''*', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
+                WHEN REGEXP_COUNT(v.dcm_creative,'_') >= 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.*?)_.*''', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
                 --WHEN v.dcm_creative = 'invisible.gif' THEN 'Site Served'
                 ELSE 'Others'
         END AS message_draft
@@ -576,7 +576,7 @@ CREATE TABLE
     gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_impressions  AS
     (
             SELECT DISTINCT
-                campaign
+                 campaign
                 ,channel
                 ,dcm_advertiser_id
                 ,dcm_campaign_id
@@ -588,6 +588,8 @@ CREATE TABLE
                 ,message
                 ,message_draft
                 ,publisher
+                ,case when prisma_tactic_attribution ='ProspectingTGA' then 'TGA'
+                else 'NonTGA' end tactic
             FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping AS a
             WHERE a.dcm_from_impression_table = 1
     );
@@ -610,6 +612,8 @@ CREATE TABLE
                 ,message
                 ,message_draft
                 ,publisher
+                ,case when prisma_tactic_attribution ='ProspectingTGA' then 'TGA'
+                else 'NonTGA' end tactic
             FROM gaintheory_us_targetusa_14.incampaign_tmp_dcm_lj_prisma_message_mapping AS a
             WHERE a.dcm_from_impression_table = 0
     );
@@ -628,18 +632,25 @@ CREATE TABLE
     gaintheory_us_targetusa_14.incampaign_digital_metadata  AS
     (
         SELECT DISTINCT
-        campaign
-        ,channel
+         INITCAPB(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(campaign,'/'),'&'),' '),','),'-'),'\''')) as campaign
+        ,INITCAPB(REGEXP_REPLACE(channel,' ')) as channel
         ,dcm_advertiser_id
         ,dcm_campaign_id
         ,dcm_creative_id
-        ,dcm_from_impression_table
         ,dcm_placement_id
         ,dcm_rendering_id
         ,dcm_site_id
-        ,message
+        ,REGEXP_REPLACE(message,'\''') as message
         ,message_draft
-        ,publisher
+        ,REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(
+        case 
+                when publisher = 'DISNEYONLINE' then 'DISNEY'
+                when publisher = 'EVERYDAYHEALTHMEDIA' then 'EVERYDAYHEALTH'
+                when publisher = 'FOX' then 'FOXAUDIENCE'
+                when publisher = 'GLAMMEDIA' then 'GLAM'
+                when publisher = 'SCRIPPSS' then 'SCRIPPS'
+         else publisher end , '\–'), '\+'), '\/'),'\-') as publisher
+        ,tactic
         FROM (
                     (
                     SELECT 
@@ -655,6 +666,7 @@ CREATE TABLE
                         ,message
                         ,message_draft
                         ,publisher
+                        ,tactic
                     FROM gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_impressions AS a
                     )
                     UNION ALL 
@@ -672,10 +684,13 @@ CREATE TABLE
                         ,message
                         ,message_draft
                         ,publisher
+                        ,tactic
                     FROM gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_clicks AS b
                     )
             ) c
     );
+
+
 
 /* Clean up intermediate tables */
 DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_impressions_mapped_to_device;
