@@ -522,8 +522,8 @@ CREATE TABLE
         SELECT
             v.*,
             CASE
-                WHEN REGEXP_COUNT(v.dcm_creative,'\|') >= 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.+?)\|.''*', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
-                WHEN REGEXP_COUNT(v.dcm_creative,'_') >= 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.*?)_.*''', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
+                WHEN REGEXP_COUNT(v.dcm_creative,'\|') >= 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.+?)\|.*', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
+                WHEN REGEXP_COUNT(v.dcm_creative,'_') >= 4 THEN REGEXP_REPLACE(REGEXP_REPLACE(v.dcm_creative,'^(.*?)_.*', '\1', 1, 0, 'i'),'\s|\(\d\)', '', 1, 0, 'i') -- removed spaces and '(1)' etc. per Manoj's request
                 --WHEN v.dcm_creative = 'invisible.gif' THEN 'Site Served'
                 ELSE 'Others'
         END AS message_draft
@@ -624,13 +624,30 @@ SET message = s.message
 FROM gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_impressions s
 WHERE t.dcm_rendering_id = s.dcm_rendering_id;
 
-
 /* Create final mapping table by combing both impression and click tables. */
 DROP TABLE
     IF EXISTS gaintheory_us_targetusa_14.incampaign_digital_metadata;
+    
 CREATE TABLE
-    gaintheory_us_targetusa_14.incampaign_digital_metadata  AS
+    gaintheory_us_targetusa_14.incampaign_digital_metadata 
     (
+        campaign                varchar(100),
+        channel                 varchar(100),
+        dcm_advertiser_id       integer,
+        dcm_campaign_id         integer,
+        dcm_creative_id         integer,
+        dcm_placement_id        integer,
+        dcm_rendering_id        integer,
+        dcm_site_id             integer,
+        message                 varchar(200),
+        message_draft           varchar(200),
+        publisher               varchar(100),
+        tactic                  varchar(100)
+);
+
+INSERT INTO
+    gaintheory_us_targetusa_14.incampaign_digital_metadata 
+     (
         SELECT DISTINCT
          INITCAPB(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(REGEXP_REPLACE(campaign,'/'),'&'),' '),','),'-'),'\''')) as campaign
         ,INITCAPB(REGEXP_REPLACE(channel,' ')) as channel
@@ -689,7 +706,7 @@ CREATE TABLE
                     )
             ) c
     );
-
+    
 
 
 /* Clean up intermediate tables */
