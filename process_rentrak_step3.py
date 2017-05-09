@@ -24,15 +24,12 @@ def get_msg_body_for_completion(s3_export_folder, data_source_name):
 def main():
     s3_folder = 'FilesForDatamart/RenTrak/'
     data_source_name = 'InCampaign RenTrak (DM 3128)'
-    flag_name_and_actions = {
-        'rentrak_creative_match_deduped':
-            [
+    cmds_to_run = [
                 {
                     'cmd': ['python', ROOT_FOLDER + 'run_vsql.py', SQL_SCRIPT_FOLDER + 'rentrak_etl.sql']
                 },
-                # {'cmd': ['python', ROOT_FOLDER + 'archive_files.py', 'FilesForDatamart/Facebook/',
-                #          S3_ARCHIVE_ROOT + 'Facebook/']}, # NOTE: we'll not archive fb files because they're too big and could delay the processing time
-                {'cmd': ['python', ROOT_FOLDER + 'run_vsql_and_export_to_s3.py', SQL_SCRIPT_FOLDER + 'export_rentrak.sql',
+                {'cmd': ['python', ROOT_FOLDER + 'run_vsql_and_export_to_s3.py',
+                         SQL_SCRIPT_FOLDER + 'export_rentrak.sql',
                          'RenTrak/', s3_folder, 'rentrak'],
                  'notify_on_complete': {
                      'subject': 'Incampaign RenTrak data processed: please make sure that the Datamart completes the ETL process',
@@ -40,6 +37,14 @@ def main():
                      'recipients': ONSHORE_EMAIL_RECIPIENTS + OFFSHORE_EMAIL_RECIPIENTS}
                  }
             ]
+
+    flag_name_and_actions = {
+        # On May 9, 2017, Manoj and I agree to only rely on either this flag below
+        # or rentrak_zipcode table row count change (therefore, the rentrak_creative_match_dedupe will happen first)
+        # to trigger the rest of RenTrak processing
+
+        'rentrak_creative_match_deduped': cmds_to_run,
+        'rentrak_kt_creative_cleaned': cmds_to_run
     }
 
     logger = Logger(__file__)

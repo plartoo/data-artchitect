@@ -303,7 +303,6 @@ def main():
 
     flag_table = 'incampaign_process_switches'
     flag_to_set = 'rentrak_creative_match_deduped' # if flag is not checked, alert team and let them know to process kt_data
-    flag_to_check = 'rentrak_kt_creative_cleaned'
 
     # Acquire the lock
     set_lock(flag_table, schema_name, flag_to_set, 0)
@@ -326,31 +325,12 @@ def main():
     insert_from_dataframe(deduped_creatives, tmp_table, schema_name)
     merge_from_tmp_to_final_deduped_table(tmp_table, deduped_table, schema_name)
 
-    flag_val = get_lock_value(flag_table, schema_name, flag_to_check)
-    if flag_val == 0:
-        print(flag_to_check, "is set to:", flag_val)
-        subject = "RenTrak automated processing step 2 (needs attention): kt_creatives might not have been uploaded"
-        body = notify_to_set_flags({'flag': flag_to_set})
-        send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
-        print("Notified the team about kt_creative flag")
-    elif flag_val < 0:
-        print(flag_to_check, "is set to:", flag_val)
-        subject = "RenTrak automated processing step 2 (needs dev attention): " + flag_to_check + "is set to -1"
-        body = """
-            Troubleshoot why the value of this flag is returned as -1 by rentrak_step2 code.
-            After that, set '{0}' to 0 and '{1}' to 1 so that step 3 can automatically proceed
-            """.format(flag_to_check, flag_to_set)
-        send_notification_email(DEV_EMAIL_RECIPIENTS, subject, body)
-        print("Notified the team to about kt_creative flag")
-    else:
-        set_lock(flag_table, schema_name, flag_to_check, 0) # we've got here because it was 1, now set it back to 0
-        set_lock(flag_table, schema_name, flag_to_set, 1) # this flag is set to 1 so that step 3 can proceed
+    set_lock(flag_table, schema_name, flag_to_set, 1) # this flag is set to 1 so that step 3 can proceed
 
-        print(flag_to_check, "is set to:", flag_val)
-        subject = "RenTrak automated processing step 2 successfully completed (no follow-up action required)"
-        body = notify_success(deduped_table)
-        send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
-        print("Notified the team that no further action on their part is required")
+    subject = "RenTrak automated processing deduped creatives and will proceed with last 60 days table generation (no follow-up action required)"
+    body = notify_success(deduped_table)
+    send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
+    print("Notified the team that no further action on their part is required")
 
 
 if __name__ == "__main__":
