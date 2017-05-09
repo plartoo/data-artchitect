@@ -1,3 +1,4 @@
+import os
 import time
 import schedule
 
@@ -49,7 +50,7 @@ def main():
 
 if __name__ == "__main__":
     interval = 1
-    print("\n\n*****DO NOT KILL this program*****\n")
+    print("\n\n*****DO NOT KILL this program::", os.path.basename(__file__) ,"*****\n")
     print("If you accidentally or intentionally killed this program, please rerun it")
     print("This program runs processes every:", interval, "hour(s)")
 
