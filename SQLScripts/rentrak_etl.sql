@@ -5,42 +5,42 @@ be Dec 10, 2016 and start date is (Dec 10 - 61 days) = Oct 10, 2016.
 */
 
 /* All the Rentrak data for the past month with reference data applied */
-DROP TABLE IF EXISTS incampaign_tmp_rt_prev_month_network_zip;
-CREATE TABLE incampaign_tmp_rt_prev_month_network_zip AS
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_rt_prev_month_network_zip;
+CREATE TABLE gaintheory_us_targetusa_14.incampaign_tmp_rt_prev_month_network_zip AS
 SELECT rentrak_network as network, rentrak_zip as zip, SUM(rentrak_ad_zip_aa) as impressions
-FROM incampaign_rentrak_zipcode a
+FROM gaintheory_us_targetusa_14.incampaign_rentrak_zipcode a
 INNER JOIN (
         SELECT rentrak_spot_id, rentrak_week, rentrak_network
-        FROM incampaign_rentrak_spotid
+        FROM gaintheory_us_targetusa_14.incampaign_rentrak_spotid
         WHERE rentrak_ad_time::date >=
         (
                 SELECT ADD_MONTHS(MAX(rentrak_ad_time::date-1), -1)
-                FROM incampaign_rentrak_spotid
+                FROM gaintheory_us_targetusa_14.incampaign_rentrak_spotid
         )
 ) b
 ON a.rentrak_spot_id = b.rentrak_spot_id AND a.rentrak_week = b.rentrak_week
 GROUP BY rentrak_network, rentrak_zip;
 
 /* The global zip level multiplier for where a network doesn't exist in the current RT dataset */
-DROP TABLE IF EXISTS incampaign_tmp_rt_global_factors;
-CREATE TABLE incampaign_tmp_rt_global_factors AS
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_rt_global_factors;
+CREATE TABLE gaintheory_us_targetusa_14.incampaign_tmp_rt_global_factors AS
 SELECT  1 as global_match,
         zip AS Geography,
         impressions/(
                 SELECT SUM(impressions)
-                FROM incampaign_tmp_rt_prev_month_network_zip
+                FROM gaintheory_us_targetusa_14.incampaign_tmp_rt_prev_month_network_zip
         ) as factor
 FROM(
         SELECT  zip, SUM(impressions) as impressions
-        FROM incampaign_tmp_rt_prev_month_network_zip
+        FROM gaintheory_us_targetusa_14.incampaign_tmp_rt_prev_month_network_zip
         GROUP BY zip
 ) a;
 
 /* The combined KeepingTrac and Rentrak data where network appears in both datasets,
    else a row containing a null VariableValue exists
    Also applies the naming convention matching current modelling data */
-DROP TABLE IF EXISTS incampaign_tmp_rt_kt_combined_raw;
-CREATE TABLE incampaign_tmp_rt_kt_combined_raw AS
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_rt_kt_combined_raw;
+CREATE TABLE gaintheory_us_targetusa_14.incampaign_tmp_rt_kt_combined_raw AS
 SELECT  zip AS Geography,
         'Target' AS Product,
         kt.rt_network AS Campaign,
@@ -50,13 +50,13 @@ SELECT  zip AS Geography,
         Air_Date AS Period,
         Act_Impression*factor as VariableValue,
         Act_Impression
-FROM incampaign_tmp_kt_with_rt_network kt
+FROM gaintheory_us_targetusa_14.incampaign_tmp_kt_with_rt_network kt
 LEFT JOIN (
         SELECT a.network AS rt_network, zip, impressions/total_impressions AS factor
-        FROM incampaign_tmp_rt_prev_month_network_zip a
+        FROM gaintheory_us_targetusa_14.incampaign_tmp_rt_prev_month_network_zip a
         LEFT JOIN (
                 SELECT network, SUM(impressions) AS total_impressions
-                FROM incampaign_tmp_rt_prev_month_network_zip
+                FROM gaintheory_us_targetusa_14.incampaign_tmp_rt_prev_month_network_zip
                 GROUP BY network
         ) b
         ON a.network = b.network
@@ -64,46 +64,46 @@ LEFT JOIN (
 ON kt.rt_network = rt.rt_network;
 
 
-DROP TABLE IF EXISTS incampaign_tmp_global_kt_lift;
-CREATE TABLE incampaign_tmp_global_kt_lift AS
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_global_kt_lift;
+CREATE TABLE gaintheory_us_targetusa_14.incampaign_tmp_global_kt_lift AS
 SELECT 'Target' AS Product, rt_impressions/kt_impressions AS factor
 FROM (
 SELECT 1 AS global_join, SUM(impressions) AS rt_impressions
-FROM incampaign_tmp_rt_prev_month_network_zip
+FROM gaintheory_us_targetusa_14.incampaign_tmp_rt_prev_month_network_zip
 ) a
 JOIN (
 SELECT 1 AS global_join, SUM(Act_Impression) as kt_impressions
-FROM incampaign_tmp_kt_with_rt_network
+FROM gaintheory_us_targetusa_14.incampaign_tmp_kt_with_rt_network
 WHERE Air_Date BETWEEN
         (
                 SELECT ADD_MONTHS(MAX(rentrak_ad_time::date-1), -1)
-                FROM incampaign_rentrak_spotid
+                FROM gaintheory_us_targetusa_14.incampaign_rentrak_spotid
         ) AND (
                 SELECT MAX(rentrak_ad_time::date-1)
-                FROM incampaign_rentrak_spotid
+                FROM gaintheory_us_targetusa_14.incampaign_rentrak_spotid
         )
 ) b
 ON a.global_join = b.global_join;
 
 
-DROP TABLE IF EXISTS incampaign_tmp_network_kt_lift;
-CREATE TABLE incampaign_tmp_network_kt_lift AS
+DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_network_kt_lift;
+CREATE TABLE gaintheory_us_targetusa_14.incampaign_tmp_network_kt_lift AS
 SELECT 'Target' AS Product, network, rt_impressions/kt_impressions AS factor
 FROM (
 SELECT network, SUM(impressions) AS rt_impressions
-FROM incampaign_tmp_rt_prev_month_network_zip
+FROM gaintheory_us_targetusa_14.incampaign_tmp_rt_prev_month_network_zip
 GROUP BY network
 ) a
 INNER JOIN (
 SELECT rt_network, SUM(Act_Impression) as kt_impressions
-FROM incampaign_tmp_kt_with_rt_network
+FROM gaintheory_us_targetusa_14.incampaign_tmp_kt_with_rt_network
 WHERE Air_Date BETWEEN
         (
                 SELECT ADD_MONTHS(MAX(rentrak_ad_time::date-1), -1)
-                FROM incampaign_rentrak_spotid
+                FROM gaintheory_us_targetusa_14.incampaign_rentrak_spotid
         ) AND (
                 SELECT MAX(rentrak_ad_time::date-1)
-                FROM incampaign_rentrak_spotid
+                FROM gaintheory_us_targetusa_14.incampaign_rentrak_spotid
         )
 GROUP BY rt_network
 ) b
