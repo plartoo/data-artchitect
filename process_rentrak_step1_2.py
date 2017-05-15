@@ -20,7 +20,7 @@ def main():
 
     logger = Logger(__file__)
     start_time = time.ctime()
-    trigger_on_row_count_change(table_and_actions, 3)
+    trigger_on_row_count_change(table_and_actions, 1)
     logger.log_time_taken(start_time, time.ctime())
 
 
