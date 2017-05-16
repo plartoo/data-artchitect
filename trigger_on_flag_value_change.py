@@ -61,19 +61,19 @@ def trigger_on_flag_value_change(flag_name_and_actions):
     trigger_script_when_flag_value = 1
     schema_name = 'gaintheory_us_targetusa_14'
     switch_table = 'incampaign_process_switches'
-    cur_flag = ''
 
-    try:
-        with vertica_python.connect(**conn_info) as connection:
-            print("Checking flags...")
-            cursor = connection.cursor()
-            for flag, procedures in flag_name_and_actions.items():
-                cur_flag = flag
+    for flag, procedures in flag_name_and_actions.items():
+        cur_flag = flag
+        try:
+            with vertica_python.connect(**conn_info) as connection:
+                print("Checking flags...")
+                cursor = connection.cursor()
                 cursor.execute(get_cur_flag_value(switch_table, schema_name, flag))
                 result = cursor.fetchall()
 
                 if result:
                     cur_flag_val = result[0][0]
+                    print(cur_flag, ': ', cur_flag_val)
 
                     if cur_flag_val == trigger_script_when_flag_value:
                         for proc in procedures:
@@ -103,36 +103,31 @@ def trigger_on_flag_value_change(flag_name_and_actions):
                                             print("Resetting the flag value and terminating")
                                             terminate_self()
 
-                            try:
-                                cmd = ' '.join([] + proc['cmd'])
-                                print(cmd)
-                                output = subprocess.check_output(cmd, stderr=subprocess.PIPE)
+                            cmd = ' '.join([] + proc['cmd'])
+                            print(cmd)
+                            output = subprocess.check_output(cmd, stderr=subprocess.PIPE)
+                            send_dev_email(flag, trigger_script_when_flag_value, cmd, output)
 
-                                send_dev_email(flag, trigger_script_when_flag_value, cmd, output)
+                            if 'notify_on_complete' in proc:
+                                subject = proc['notify_on_complete']['subject']
+                                body = proc['notify_on_complete']['body']
+                                recipients = proc['notify_on_complete']['recipients']
+                                send_notification_email(recipients, subject, body)
 
-                                if 'notify_on_complete' in proc:
-                                    subject = proc['notify_on_complete']['subject']
-                                    body = proc['notify_on_complete']['body']
-                                    recipients = proc['notify_on_complete']['recipients']
-                                    send_notification_email(recipients, subject, body)
-
-                            except Exception as err:
-                                send_error_email(repr(err))
-
-    except vertica_python.errors.QueryError as err:
-        print("Vertica Query Error!")
-        send_error_email(repr(err))
-    except subprocess.CalledProcessError as err:
-        print("CalledProcessError. Detail =>", err)
-        send_error_email(repr(err))
-    except Exception as err:
-        print("Unknown Error Occurred!")
-        send_error_email(repr(err))
-    finally:
-        with vertica_python.connect(**conn_info) as connection:
-            print("Resetting the flag value:", cur_flag)
-            cursor = connection.cursor()
-            cursor.execute(set_flag_value(switch_table, schema_name, cur_flag, DEFAULT_FLAG_VALUE))
+        except vertica_python.errors.QueryError as err:
+            print("Vertica Query Error!")
+            send_error_email(repr(err))
+        except subprocess.CalledProcessError as err:
+            print("CalledProcessError. Detail =>", err)
+            send_error_email(repr(err))
+        except Exception as err:
+            print("Unknown Error Occurred!")
+            send_error_email(repr(err))
+        finally:
+            with vertica_python.connect(**conn_info) as connection:
+                print("Resetting the flag value:", cur_flag)
+                cursor = connection.cursor()
+                cursor.execute(set_flag_value(switch_table, schema_name, cur_flag, DEFAULT_FLAG_VALUE))
 
 if __name__ == "__main__":
     flag_name_and_actions = {
