@@ -37,8 +37,7 @@ def trigger_once(procedures):
         try:
             cmd = ' '.join([] + proc['cmd'])
             print(cmd)
-            output = subprocess.check_output(cmd,
-                                             stderr=subprocess.PIPE)
+            output = subprocess.check_output(cmd, stderr=subprocess.STDOUT) #stderr=subprocess.PIPE)
             send_dev_email(cmd, output)
 
             if 'notify_on_complete' in proc:
