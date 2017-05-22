@@ -624,27 +624,11 @@ SET message = s.message
 FROM gaintheory_us_targetusa_14.incampaign_tmp_digital_metadata_impressions s
 WHERE t.dcm_rendering_id = s.dcm_rendering_id;
 
-/* Create final mapping table by combing both impression and click tables. */
-DROP TABLE
-    IF EXISTS gaintheory_us_targetusa_14.incampaign_digital_metadata;
-    
-CREATE TABLE
-    gaintheory_us_targetusa_14.incampaign_digital_metadata 
-    (
-        campaign                varchar(100),
-        channel                 varchar(100),
-        dcm_advertiser_id       integer,
-        dcm_campaign_id         integer,
-        dcm_creative_id         integer,
-        dcm_placement_id        integer,
-        dcm_rendering_id        integer,
-        dcm_site_id             integer,
-        message                 varchar(200),
-        message_draft           varchar(200),
-        publisher               varchar(100),
-        tactic                  varchar(100)
-);
-
+/*
+-- We need to launch INSERT INTO in a separate script because the VSQL returns error 
+-- vsql:C:/Users/phyo.thiha/Desktop/data-artchitect/SQLScripts/create_mappings_using_dcm_and_prisma.sql
+-- :708: ERROR 4553:  Regexp pattern error at offset 1: invalid UTF-8 string
+-- while it doesn't when run separately.
 INSERT INTO
     gaintheory_us_targetusa_14.incampaign_digital_metadata 
      (
@@ -707,7 +691,7 @@ INSERT INTO
             ) c
     );
     
-
+COMMIT;*/
 
 /* Clean up intermediate tables */
 DROP TABLE IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_dcm_impressions_mapped_to_device;

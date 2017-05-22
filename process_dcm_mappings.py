@@ -17,12 +17,16 @@ def main():
     table_name = 'incampaign_digital_metadata'
     actions = [
                 {'cmd': ['python', ROOT_FOLDER+'run_vsql.py', SQL_SCRIPT_FOLDER + 'create_mappings_using_dcm_and_prisma.sql'],
+                 }
+                # we have to split this into two because VSQL is returning an error about UTF encoding in REGEX
+                # which goes away when we split INSERT part into its own script. Very strange indeed.
+                ,{'cmd': ['python', ROOT_FOLDER + 'run_vsql.py', SQL_SCRIPT_FOLDER + 'insert_dcm_mappings.sql'],
                  'notify_on_complete': {
                      'subject': 'DCM Mappings completed',
                      'body': get_msg_body_for_completion(table_name),
-                     'recipients': ONSHORE_EMAIL_RECIPIENTS + OFFSHORE_EMAIL_RECIPIENTS}
+                     'recipients': ONSHORE_EMAIL_RECIPIENTS + OFFSHORE_EMAIL_RECIPIENTS} #DEV_EMAIL_RECIPIENTS}
                  }
-            ]
+    ]
 
     logger = Logger(__file__)
     start_time = time.ctime()
