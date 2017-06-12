@@ -123,7 +123,7 @@ def main():
         set_lock(flag_table, schema_name, flag, 0)
 
         file_to_export = os.path.join(output_folder, output_file)
-        df.to_excel(file_to_export, index=False)
+        df[df['kt_creative_clean'].isnull()].to_excel(file_to_export, index=False)
 
         # Send email to tell the team to start manual mapping
         subject = "RenTrak automated processing step 1: new kt_creatives need to be mapped"
