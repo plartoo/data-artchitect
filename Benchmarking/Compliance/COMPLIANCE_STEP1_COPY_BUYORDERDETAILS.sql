@@ -29,6 +29,36 @@ BEGIN
 IF OBJECT_ID('Compliance_BuyOrderDetails') IS NOT NULL
    DROP TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails]
 
+CREATE TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails]
+(
+	  [CampaignId] [INT],
+      [CampaignPublicId] NVARCHAR(4000)
+      ,[CampaignName] NVARCHAR(4000)
+      ,[AdvertiserCode] NVARCHAR(4000)
+	  ,[AdvertiserName] NVARCHAR(4000)
+      ,[ProductCode] NVARCHAR(4000)
+      ,[EstimateCode] NVARCHAR(4000)
+      ,[SupplierId] INT
+      ,[SupplierName] NVARCHAR(4000)
+      ,[SupplierCode] NVARCHAR(4000)
+      --,[SupplierZone] NVARCHAR(4000) -- we don't have this in the table via Marketplace
+      ,[MediaCode] NVARCHAR(4000)
+	  ,[New_BuyMonth] DATE
+      ,[BuyMonth] NVARCHAR(4000)
+      ,[BuyAmount] FLOAT
+      ,[BuyRcnAmount] FLOAT
+      ,[BuyType] NVARCHAR(4000)
+      ,[BuySendDate] SMALLDATETIME
+      ,[BuySource] NVARCHAR(4000)
+	  ,[BuyRefNumber] NVARCHAR(4000)
+      ,[IsOverride] NVARCHAR(4000)
+	  ,[CampaignCreationUser] NVARCHAR(4000) -- in place of campaigns.[user]
+	  ,[AgencyName] NVARCHAR(4000)
+	  ,[AgencyAlphaCode] NVARCHAR(4000)
+	  ,[LocationCompanyCode] NVARCHAR(4000)
+	  ,[MasterClientName] NVARCHAR(4000) NULL
+)
+
 INSERT INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails]
 SELECT bo.[CampaignId]
       ,bo.[CampaignPublicId]
@@ -51,7 +81,7 @@ SELECT bo.[CampaignId]
       ,bo.[BuySource]
 	  ,bo.[BuyRefNumber]
       ,bo.[IsOverride]
-	  ,bo.[CampaignCreationUser] -- in place of campaigns.[user]
+	  ,bo.[CampaignUser] -- in place of campaigns.[user]
 	  ,bo.[AgencyName]
 	  ,bo.[AgencyAlphaCode]
 	  ,bo.[LocationCompanyCode]
@@ -59,6 +89,7 @@ SELECT bo.[CampaignId]
   FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[DFID056241_Prisma_Buy_Order_Details_Extracted] bo
   WHERE bo.[IsOverride] IS NOT NULL
   AND bo.[IsDeleted] = 'False'
+
 
 -- update MasterClientName for US data from B_clients_ddstomi on mi_target
 UPDATE po

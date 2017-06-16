@@ -42,17 +42,17 @@ SET @start_date = '2014-01-01';
 SET @end_date = CONVERT(DATE, Dateadd(s, -1, Dateadd(mm, Datediff(m, 0, Getdate()), 0))); 
 
 
-EXEC [dbo].[LogProcessNameAndLaunchTime] @log_table, @run_id, '1: Making a copy of BuyOrderDetails table'
-
 BEGIN TRY
 
+EXEC [dbo].[LogProcessNameAndLaunchTime] @log_table, @run_id, '1: Making a copy of BuyOrderDetails table'
 EXEC [dbo].[COMPLIANCE_STEP1_COPY_BUYORDERDETAILS]
 
+EXEC [dbo].[LogProcessNameAndLaunchTime] @log_table, @run_id, '2: Pivoting Advanced Placement Details table'
+EXEC [dbo].[COMPLIANCE_STEP2_PIVOT_ADVANCEDPLACEMENTDETAILS]
 
+EXEC [dbo].[LogProcessNameAndLaunchTime] @log_table, @run_id, '3: Joining Placements and PlacementMonthly tables'
+EXEC [dbo].[COMPLIANCE_STEP3_JOIN_PLACEMENT_TABLES]
 
-
-
---exec [dbo].[SP_RPT_PRISMA_API_CUSTOM_COLUMNS]--00:04:35
 --exec [dbo].[SP_RPT_STG_PRISMA_COMPLIANCE]--00:11:24
 --exec [dbo].[SP_RPT_PRISMA_COMPLIANCE]--00:06:56
 
