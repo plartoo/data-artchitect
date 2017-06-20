@@ -31,8 +31,8 @@ IF OBJECT_ID('Compliance_BuyOrderDetails') IS NOT NULL
 
 CREATE TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails]
 (
-	  [CampaignId] [INT],
-      [CampaignPublicId] NVARCHAR(4000)
+	  [CampaignId] INT
+      ,[CampaignPublicId] NVARCHAR(4000)
       ,[CampaignName] NVARCHAR(4000)
       ,[AdvertiserCode] NVARCHAR(4000)
 	  ,[AdvertiserName] NVARCHAR(4000)

@@ -24,86 +24,75 @@ IF OBJECT_ID('Compliance_Campaigns_Placements_Placement_Monthly') IS NOT NULL
  -- Insert child packages
  CREATE TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_Placement_Monthly]
 (
-	 [AgencyName]
-	,[AgencyAlphaCode]
-	,[LocationCompanyCode]
-	,[CampaignStartDate]
-	,[CampaignEndDate]
-	,[CampaignStatus]
-	,[RateType]
-	,[Budget]
-	,[BudgetApproved]
-	,[CampaignUser]
+	 [AgencyName] NVARCHAR(4000)
+	,[AgencyAlphaCode] NVARCHAR(4000)
+	,[LocationCompanyCode] NVARCHAR(4000)
+	,[CampaignStartDate] SMALLDATETIME
+	,[CampaignEndDate] SMALLDATETIME
+	,[CampaignStatus] NVARCHAR(4000)
+	,[RateType] NVARCHAR(4000)
+	,[Budget] FLOAT
+	,[BudgetApproved] NVARCHAR(4000)
+	,[CampaignUser] NVARCHAR(4000)
 	
-	,[MediaCode]
-	,[MediaName]
-	,[AdvertiserCode]
-	,[AdvertiserName]
-	,[ProductCode]
-	,[ProductName]
-	,[EstimateCode]
-	,[EstimateName]
-	,[EstimateStartDate]
-	,[EstimateEndDate]
-	,[SupplierCode]
-	,[SupplierName]
-	,[BuyType]
-	,[BuyCategory]
-	,[CampaignId]
-	,[CampaignPublicId]
-	,[CampaignName]
-	,[PackageType]
-	,[PackageId]
-	,[PlacementId]
-	,[ParentId]
-	,[PlacementName]
-	,[PlacementType]
-	,[Site]
-	,[Dimension]
-	,[Positioning]
-	,[CostMethod]
-	,[UnitType]
-	,[Rate]
-	,[IONumber]
-	,[ServedBy]
-	,[AdserverName]
-	,[AdserverSupplierName]
+	,[MediaCode] NVARCHAR(4000)
+	,[MediaName] NVARCHAR(4000)
+	,[AdvertiserCode] NVARCHAR(4000)
+	,[AdvertiserName] NVARCHAR(4000)
+	,[ProductCode] NVARCHAR(4000)
+	,[ProductName] NVARCHAR(4000)
+	,[EstimateCode] NVARCHAR(4000)
+	,[EstimateName] NVARCHAR(4000)
+	,[EstimateStartDate] SMALLDATETIME
+	,[EstimateEndDate] SMALLDATETIME
+	,[SupplierCode] NVARCHAR(4000)
+	,[SupplierName] NVARCHAR(4000)
+	,[BuyType] NVARCHAR(4000)
+	,[BuyCategory] NVARCHAR(4000)
+	,[CampaignId] INT
+	,[CampaignPublicId] NVARCHAR(4000)
+	,[CampaignName] NVARCHAR(4000)
+	,[PackageType] NVARCHAR(4000)
+	,[PackageId] INT
+	,[PlacementId] INT
+	,[ParentId] INT
+	,[PlacementName] NVARCHAR(4000)
+	,[PlacementType] NVARCHAR(4000)
+	,[Site] NVARCHAR(4000)
+	,[Dimension] NVARCHAR(4000)
+	,[Positioning] NVARCHAR(4000)
+	,[CostMethod] NVARCHAR(4000)
+	,[UnitType] NVARCHAR(4000)
+	,[Rate] FLOAT
+	,[IONumber] NVARCHAR(4000)
+	,[ServedBy] NVARCHAR(4000)
+	,[AdserverName] NVARCHAR(4000)
+	,[AdserverSupplierName] NVARCHAR(4000)
 
-	-- combine whatever raw month and year columns are into smalldatetime; if either of the columns in raw data are NULL, default to NULL
-    ,CASE 
-        WHEN (
-				(
-					[PlacementMonth] IS NULL
-				) 
-            OR  (
-                [PlacementYear] IS NULL
-				)
-        ) THEN NULL  
-        ELSE CONVERT(SMALLDATETIME, CONCAT(CONVERT(VARCHAR, [PlacementMonth]), '-01-', CONVERT(VARCHAR, [PlacementYear])))
-    END AS [New_PlacementMonth]
-	,[PlacementMonth]	
-	,[PlacementYear]
-	,[PlacementMonthlyStartDate]	
-	,[PlacementMonthlyEndDate]
-	,[PlannedAmount] -- 0.00
-	,[PlannedUnits] -- 0
-	,[PlannedImpressions]	
-	,[PlannedClicks]	
-	,[PlannedActions]	
-	,[IOAmount]	
-	,[SupplierUnits]	
-	,[SupplierImpressions]	
-	,[SupplierClicks]	
-	,[SupplierActions]	
-	,[SupplierCost]	
-	,[AdserverUnits]	
-	,[AdserverImpressions]	
-	,[AdserverClicks]	
-	,[AdserverActions]	
-	,[AdserverCost]	
-	,[DeliveryExists]
-	,[MasterClientName]
-	,[ChildCount] -- INT
+	,[New_PlacementMonth] SMALLDATETIME
+	,[PlacementMonth] INT
+	,[PlacementYear] INT
+	,[PlacementMonthlyStartDate] SMALLDATETIME
+	,[PlacementMonthlyEndDate] SMALLDATETIME
+	,[PlannedAmount] FLOAT 
+	,[PlannedUnits] BIGINT
+	,[PlannedImpressions] BIGINT
+	,[PlannedClicks] BIGINT
+	,[PlannedActions] BIGINT
+	,[IOAmount] FLOAT
+	,[SupplierUnits] BIGINT	
+	,[SupplierImpressions] BIGINT
+	,[SupplierClicks] BIGINT
+	,[SupplierActions] BIGINT
+	,[SupplierCost] FLOAT
+	,[AdserverUnits] BIGINT	
+	,[AdserverImpressions] BIGINT
+	,[AdserverClicks] BIGINT
+	,[AdserverActions] BIGINT
+	,[AdserverCost] FLOAT
+	,[DeliveryExists] NVARCHAR(4000)
+	,[MasterClientName] NVARCHAR(4000)
+	,[ChildCount] INT
 )
 
 -- Insert non-child packages
@@ -356,16 +345,17 @@ parent_cte AS (
 ,child_cte AS (
 	SELECT 	
 			[ParentId],[PackageId],[PackageType],[New_PlacementMonth]
-			,COUNT([PlacementId]) child_cnt,
+			,COUNT([PlacementId]) child_cnt
 			FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Tmp_Parent_Child_Pkg_Types]
 			WHERE [PackageType] = 'Child' 
 	GROUP BY [ParentId],[PackageId],[PackageType],[New_PlacementMonth]
 ) 
 
-INSERT INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Tmp_Parent_Child_Planned_Metrics_Distributed]
+--INSERT INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Tmp_Parent_Child_Planned_Metrics_Distributed]
 SELECT 
 	child_cte.child_cnt
 	,parent_cte.* 
+INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Tmp_Parent_Child_Planned_Metrics_Distributed]
 FROM parent_cte
 INNER JOIN child_cte 
 	ON parent_cte.[ParentId] = child_cte.[ParentId]

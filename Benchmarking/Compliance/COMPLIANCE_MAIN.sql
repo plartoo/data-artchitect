@@ -50,10 +50,12 @@ EXEC [dbo].[COMPLIANCE_STEP1_COPY_BUYORDERDETAILS]
 EXEC [dbo].[LogProcessNameAndLaunchTime] @log_table, @run_id, '2: Pivoting Advanced Placement Details table'
 EXEC [dbo].[COMPLIANCE_STEP2_PIVOT_ADVANCEDPLACEMENTDETAILS]
 
-EXEC [dbo].[LogProcessNameAndLaunchTime] @log_table, @run_id, '3: Joining Placements and PlacementMonthly tables'
+EXEC [dbo].[LogProcessNameAndLaunchTime] @log_table, @run_id, '3: Joining Campaigns, Placements and PlacementMonthly tables'
 EXEC [dbo].[COMPLIANCE_STEP3_JOIN_PLACEMENT_TABLES]
 
---exec [dbo].[SP_RPT_STG_PRISMA_COMPLIANCE]--00:11:24
+EXEC [dbo].[LogProcessNameAndLaunchTime] @log_table, @run_id, '4: Joining output table from STEP3 with the AdvancedPlacementDetails table'
+EXEC [dbo].[COMPLIANCE_STEP4_JOIN_ALL_PRISMA_TABLES]
+
 --exec [dbo].[SP_RPT_PRISMA_COMPLIANCE]--00:06:56
 
 
