@@ -8,9 +8,9 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 -- =========================================================================
--- Author:		Phyo Thiha
--- Create date: 06/12/2017
--- Description:	this stored procedure creates a copy of BuyOrderDetails (BOD).
+-- Author:			Phyo Thiha
+-- Modified Date: 	06/21/2017
+-- Description:	This stored procedure creates a copy of BuyOrderDetails (BOD).
 -- Previous version of Compliance report used to join BOD with Campaigns 
 -- table, but we no longer need it because the BOD table that we get via
 -- DataMarketplace has all the needed info (as opposed to the ODS table
@@ -43,7 +43,7 @@ CREATE TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails]
       ,[SupplierCode] NVARCHAR(4000)
       --,[SupplierZone] NVARCHAR(4000) -- we don't have this in the table via Marketplace
       ,[MediaCode] NVARCHAR(4000)
-	  ,[New_BuyMonth] DATE
+	  ,[New_BuyMonth] SMALLDATETIME
       ,[BuyMonth] NVARCHAR(4000)
       ,[BuyAmount] FLOAT
       ,[BuyRcnAmount] FLOAT
@@ -57,6 +57,7 @@ CREATE TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails]
 	  ,[AgencyAlphaCode] NVARCHAR(4000)
 	  ,[LocationCompanyCode] NVARCHAR(4000)
 	  ,[MasterClientName] NVARCHAR(4000) NULL
+      ,[RefreshedDate] SMALLDATETIME NULL
 )
 
 INSERT INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails]
@@ -85,11 +86,11 @@ SELECT bo.[CampaignId]
 	  ,bo.[AgencyName]
 	  ,bo.[AgencyAlphaCode]
 	  ,bo.[LocationCompanyCode]
-	  ,NULL
+	  ,NULL -- for [MasterClientName]
+	  ,NULL -- for [RefreshedDate]
   FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[DFID056241_Prisma_Buy_Order_Details_Extracted] bo
   WHERE bo.[IsOverride] IS NOT NULL
   AND bo.[IsDeleted] = 'False'
-
 
 -- update MasterClientName for US data from B_clients_ddstomi on mi_target
 UPDATE po
@@ -102,7 +103,6 @@ AND bc.[Src_media_code]= po.[MediaCode]
 AND bc.[src_media_code] in ('I','S','L')
 AND [Src_agency_code] = 'h7'
 AND po.[AgencyAlphaCode] = 'h7'
-
 
 --  update MasterClientName for Canada data from CA_MASTER_CLIENT_LKP table in BI_Projects on DEV 2012 
 UPDATE po

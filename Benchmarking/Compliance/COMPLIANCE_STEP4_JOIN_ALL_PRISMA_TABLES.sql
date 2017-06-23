@@ -19,8 +19,8 @@ GO
 CREATE PROC [dbo].[COMPLIANCE_STEP4_JOIN_ALL_PRISMA_TABLES]  AS
 BEGIN
 
-IF OBJECT_ID('Compliance_Placements_PlacementMonthly_AdvPlacementDetails') IS NOT NULL
-   DROP TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Placements_PlacementMonthly_AdvPlacementDetails]
+IF OBJECT_ID('Compliance_Campaigns_Placements_PlacementMonthly_AdvPlacementDetails') IS NOT NULL
+   DROP TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_PlacementMonthly_AdvPlacementDetails]
 
 SELECT 
       [AgencyName]
@@ -111,7 +111,7 @@ SELECT
       ,cus.[Targeting Context Type]
       ,cus.[PRIMARY CONTENT CHANNEL]
       ,cus.[CONTENT CHANNEL DETAILS]
-INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Placements_PlacementMonthly_AdvPlacementDetails]
+INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_PlacementMonthly_AdvPlacementDetails]
 FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Tmp_Parent_Child_Pkg_Types] stg
 LEFT JOIN [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_AdvPlacementDetails] cus
 	ON stg.[PlacementId]=cus.[PlacementId]
@@ -215,7 +215,7 @@ ON stg.[PlacementId] = cus.[PlacementId]
 UPDATE pc
 SET pc.[MasterClientName] = bc.[mi_master_client_name]
 FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[DFID056630_Compliance_MasterClientName_US_Mappings_Extracted] bc
-INNER JOIN [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Placements_PlacementMonthly_AdvPlacementDetails] pc
+INNER JOIN [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_PlacementMonthly_AdvPlacementDetails] pc
 ON bc.[src_client_code] = pc.[AdvertiserCode]
 AND bc.[Src_media_category_code] = 'print'
 AND bc.[Src_media_code] = pc.[MediaCode]
@@ -226,15 +226,15 @@ AND bc.Src_agency_code = 'h7'
 UPDATE pc
 SET pc.[MasterClientName] = ca.[master_client]
 FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[DFID056631_Compliance_MasterClientName_CA_Mappings_Extracted] ca
-INNER JOIN [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Placements_PlacementMonthly_AdvPlacementDetails] pc
+INNER JOIN [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_PlacementMonthly_AdvPlacementDetails] pc
 ON ca.[Client] = pc.[AdvertiserName]
 AND pc.[AgencyAlphaCode] <> 'H7'
 
 -- Bring cost method from parent to child package  
 UPDATE a
 SET a.[CostMethod] = b.[CostMethod]
-FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Placements_PlacementMonthly_AdvPlacementDetails] a
-INNER JOIN (SELECT * FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Placements_PlacementMonthly_AdvPlacementDetails] WHERE [PackageType]='package') b
+FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_PlacementMonthly_AdvPlacementDetails] a
+INNER JOIN (SELECT * FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_PlacementMonthly_AdvPlacementDetails] WHERE [PackageType]='package') b
 	ON a.[ParentId] = b.[ParentId]
 	AND a.[New_PlacementMonth] = b.[New_PlacementMonth]
 	AND a.[PackageType] = 'Child'

@@ -15,7 +15,7 @@ GO
 -- IOAmount to children.
 -- =========================================================================
 
-CREATE PROC [dbo].[COMPLIANCE_STEP3_JOIN_PLACEMENT_TABLES]  AS
+CREATE PROC [dbo].[COMPLIANCE_STEP3_JOIN_CAMPAIGN_AND_PLACEMENT_TABLES]  AS
 BEGIN
 
 IF OBJECT_ID('Compliance_Campaigns_Placements_Placement_Monthly') IS NOT NULL
@@ -295,11 +295,11 @@ AND bc.[src_media_code] IN ('I','S','L')
 AND bc.[Src_agency_code] = 'h7'
 AND po.[AgencyAlphaCode] = 'h7'
 
---  update MasterClientName for Canada data from CA_MASTER_CLIENT_LKP table in BI_Projects on DEV 2012 
+--  update MasterClientName for Canada data from CA_MASTER_CLIENT_LKP table 
 UPDATE po
 SET po.[MasterClientName] = ca.[master_client]
 FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[DFID056631_Compliance_MasterClientName_CA_Mappings_Extracted] ca
--- here, Pavani's code seem to have a bug by using INNER JOIN [Compliance_BuyOrderDetails] po
+-- here, Pavani's code seem to have a bug by using INNER JOIN [Compliance_BuyOrderDetails] po; possibly a bug
 INNER JOIN [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_Placement_Monthly] po 
 ON ca.[Client] = po.[AdvertiserName]
 AND po.[AgencyAlphaCode] <> 'H7'
