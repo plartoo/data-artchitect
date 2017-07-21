@@ -87,7 +87,7 @@ def main():
     existing_mapping_table = 'incampaign_facebook_mapped_campaign_group_name'
     flag_table = 'incampaign_process_switches'
     flag = 'fb_etl_and_export_to_s3'
-    columns_to_extract = ['fb_campaign_group_name']
+    columns_to_extract = ['fb_campaign_group_name', 'Campaign', 'Sub_campaign']
 
     # Location of sources and destination files
     output_folder = ROOT_FOLDER + 'Facebook'
@@ -105,11 +105,11 @@ def main():
     mappings = vertica_extract(extract_query, columns_to_extract)
 
     get_unique_gp_names = """
-        SELECT DISTINCT fb_mapped_campaign_group_name
+        SELECT DISTINCT Campaign, Sub_campaign
         FROM {1}.{0}
         ORDER BY 1
     """.format(existing_mapping_table, schema_name)
-    keys = vertica_extract(get_unique_gp_names, ['fb_mapped_campaign_group_name'])
+    keys = vertica_extract(get_unique_gp_names, ['Campaign', 'Sub_campaign'])
 
     if not mappings.empty:
         print("Some unmapped campaign group names found")
@@ -147,7 +147,7 @@ def main():
         # insert, set flag to 1 and send email notification about being cleaned
         subject = "Facebook automated processing step 1: campaign group names are all mapped. Step 2 will automatically commence."
         body = notify_no_new_mapping_found()
-        send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body)
+        send_notification_email(ONSHORE_EMAIL_RECIPIENTS, subject, body) #DEV_EMAIL_RECIPIENTS
         print("Notified the team that no further action on their part is required")
 
 if __name__ == "__main__":
