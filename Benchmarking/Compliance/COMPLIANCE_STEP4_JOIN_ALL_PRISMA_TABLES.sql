@@ -33,7 +33,7 @@ SELECT
       ,[Budget]
       ,[BudgetApproved]
       ,[CampaignUser]
-	  
+
       ,[MediaCode]
       ,[MediaName]
       ,[AdvertiserCode]
@@ -129,7 +129,7 @@ SELECT
       ,[Budget]
       ,[BudgetApproved]
       ,[CampaignUser]
-	  
+
       ,[MediaCode]
       ,[MediaName]
       ,[AdvertiserCode]

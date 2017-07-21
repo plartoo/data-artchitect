@@ -23,7 +23,6 @@ GO
 -- =========================================================================
 
 CREATE PROC [dbo].[COMPLIANCE_STEP1_COPY_BUYORDERDETAILS]  AS
-
 BEGIN
 
 IF OBJECT_ID('Compliance_BuyOrderDetails') IS NOT NULL
@@ -31,14 +30,14 @@ IF OBJECT_ID('Compliance_BuyOrderDetails') IS NOT NULL
 
 CREATE TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails]
 (
-	  [CampaignId] INT
+	  [CampaignId] BIGINT
       ,[CampaignPublicId] NVARCHAR(4000)
       ,[CampaignName] NVARCHAR(4000)
       ,[AdvertiserCode] NVARCHAR(4000)
 	  ,[AdvertiserName] NVARCHAR(4000)
       ,[ProductCode] NVARCHAR(4000)
       ,[EstimateCode] NVARCHAR(4000)
-      ,[SupplierId] INT
+      ,[SupplierId] BIGINT
       ,[SupplierName] NVARCHAR(4000)
       ,[SupplierCode] NVARCHAR(4000)
       --,[SupplierZone] NVARCHAR(4000) -- we don't have this in the table via Marketplace
@@ -52,7 +51,7 @@ CREATE TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails]
       ,[BuySource] NVARCHAR(4000)
 	  ,[BuyRefNumber] NVARCHAR(4000)
       ,[IsOverride] NVARCHAR(4000)
-	  ,[CampaignCreationUser] NVARCHAR(4000) -- in place of campaigns.[user]
+	  ,[CampaignUser] NVARCHAR(4000) -- in place of campaigns.[user]
 	  ,[AgencyName] NVARCHAR(4000)
 	  ,[AgencyAlphaCode] NVARCHAR(4000)
 	  ,[LocationCompanyCode] NVARCHAR(4000)
@@ -88,7 +87,7 @@ SELECT bo.[CampaignId]
 	  ,bo.[LocationCompanyCode]
 	  ,NULL -- for [MasterClientName]
 	  ,NULL -- for [RefreshedDate]
-  FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[DFID056241_Prisma_Buy_Order_Details_Extracted] bo
+FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[DFID056241_Prisma_Buy_Order_Details_Extracted] bo
   WHERE bo.[IsOverride] IS NOT NULL
   AND bo.[IsDeleted] = 'False'
 
@@ -113,7 +112,6 @@ ON ca.[Client] = po.[AdvertiserName]
 AND po.[AgencyAlphaCode] <> 'H7'
 
 END
-
 
 GO
 

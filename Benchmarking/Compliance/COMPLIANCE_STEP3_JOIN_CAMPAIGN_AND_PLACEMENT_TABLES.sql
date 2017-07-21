@@ -49,13 +49,13 @@ IF OBJECT_ID('Compliance_Campaigns_Placements_Placement_Monthly') IS NOT NULL
 	,[SupplierName] NVARCHAR(4000)
 	,[BuyType] NVARCHAR(4000)
 	,[BuyCategory] NVARCHAR(4000)
-	,[CampaignId] INT
+	,[CampaignId] BIGINT
 	,[CampaignPublicId] NVARCHAR(4000)
 	,[CampaignName] NVARCHAR(4000)
 	,[PackageType] NVARCHAR(4000)
-	,[PackageId] INT
-	,[PlacementId] INT
-	,[ParentId] INT
+	,[PackageId] BIGINT
+	,[PlacementId] BIGINT
+	,[ParentId] BIGINT
 	,[PlacementName] NVARCHAR(4000)
 	,[PlacementType] NVARCHAR(4000)
 	,[Site] NVARCHAR(4000)
@@ -94,8 +94,8 @@ IF OBJECT_ID('Compliance_Campaigns_Placements_Placement_Monthly') IS NOT NULL
 	,[MasterClientName] NVARCHAR(4000)
 	,[ChildCount] INT
 )
-
 -- Insert non-child packages
+
 INSERT INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_Placement_Monthly]
 SELECT
 	 c.[AgencyName]

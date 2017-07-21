@@ -20,8 +20,8 @@ AS
 DECLARE @refreshed_date DATE
 SET @refreshed_date = CONVERT(DATE, DATEADD(s, -1, DATEADD(mm, DATEDIFF(m, 0, GETDATE()), 0))) --the last date of the most recent month 
 
-IF OBJECT_ID('Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined') IS NULL
-	CREATE TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined]
+IF OBJECT_ID('Compliance_Final_Business_Rules_Applied_To_Campaigns_And_Placements_Tables') IS NULL
+	CREATE TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Final_Business_Rules_Applied_To_Campaigns_And_Placements_Tables]
 	(
 		 [AgencyName] NVARCHAR(4000)
 		,[AgencyAlphaCode] NVARCHAR(4000)
@@ -48,13 +48,13 @@ IF OBJECT_ID('Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined')
 		,[SupplierName] NVARCHAR(4000)
 		,[BuyType] NVARCHAR(4000)
 		,[BuyCategory] NVARCHAR(4000)
-		,[CampaignId] INT
+		,[CampaignId] BIGINT
 		,[CampaignPublicId] NVARCHAR(4000)
 		,[CampaignName] NVARCHAR(4000)
 		,[PackageType] NVARCHAR(4000)
-		,[PackageId] INT
-		,[PlacementId] INT
-		,[ParentId] INT
+		,[PackageId] BIGINT
+		,[PlacementId] BIGINT
+		,[ParentId] BIGINT
 		,[PlacementName] NVARCHAR(4000)
 		,[PlacementType] NVARCHAR(4000)
 		,[Site] NVARCHAR(4000)
@@ -91,7 +91,7 @@ IF OBJECT_ID('Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined')
 		,[AdserverCost] FLOAT
 		,[DeliveryExists] NVARCHAR(4000)
 		,[MasterClientName] NVARCHAR(4000)
-		,[ChildCount] INT
+		,[ChildCount] BIGINT
 
 		,[AD FORMAT FOR NON-1X1 UNITS] NVARCHAR(4000)
 		,[Channel Type 1] NVARCHAR(4000)
@@ -110,7 +110,7 @@ IF OBJECT_ID('Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined')
 		,[Targeting Context Type] NVARCHAR(4000)
 		,[PRIMARY CONTENT CHANNEL] NVARCHAR(4000)
 		,[CONTENT CHANNEL DETAILS] NVARCHAR(4000)
-		,[Refreshed_Date] SMALLDATETIME
+		,[RefreshedDate] SMALLDATETIME
 
 		,[1By1Acceptable] INT
 		,[1X1Exists] INT
@@ -129,7 +129,7 @@ IF OBJECT_ID('Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined')
 		,[NAPlannedCost] FLOAT
 	)
 
-INSERT INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined]	( -- in Pavani's code, this table was: [ALEX_RPT_PRISMA_COMPLIANCE_2015_BM_Full]
+INSERT INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Final_Business_Rules_Applied_To_Campaigns_And_Placements_Tables]	( -- in Pavani's code, this table was: [ALEX_RPT_PRISMA_COMPLIANCE_2015_BM_Full]
 	-- columns from Campaigns table
 	[AgencyName],[AgencyAlphaCode],[LocationCompanyCode],[CampaignStartDate],[CampaignEndDate],[CampaignStatus],[RateType],[Budget],[BudgetApproved],[CampaignUser],
 
@@ -150,7 +150,7 @@ INSERT INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_Campai
 	[TARGETING TYPE 2],[BUY TYPE],[TARGETING TYPE 1],[Targeting Audience Type],
 	[Targeting Delivery Type],[CPA KPI],[SECONDARY CONTENT CHANNEL],[TRACKING METHOD],
 	[Targeting Context Type],[PRIMARY CONTENT CHANNEL],[CONTENT CHANNEL DETAILS],
-	[Refreshed_Date],
+	[RefreshedDate],
 
 	-- new columns created based on business rules
 	[1By1Acceptable],[1X1Exists],[COUNTRY],[DataDeliveryExists],
@@ -173,7 +173,7 @@ SELECT
 	[TARGETING TYPE 2],[BUY TYPE],[TARGETING TYPE 1],[Targeting Audience Type],
 	[Targeting Delivery Type],[CPA KPI],[SECONDARY CONTENT CHANNEL],[TRACKING METHOD],
 	[Targeting Context Type],[PRIMARY CONTENT CHANNEL],[CONTENT CHANNEL DETAILS],
-	[Refreshed_Date],
+	[RefreshedDate],
 
 	CASE 
 	WHEN
@@ -325,32 +325,32 @@ SELECT
 	+ CASE WHEN UPPER([TARGETING TYPE 1])='N/A' OR UPPER([TARGETING TYPE 1])='NA'THEN 1 ELSE 0 END
 	+ CASE WHEN UPPER([TARGETING TYPE 2])='N/A' OR UPPER([TARGETING TYPE 2])='NA'THEN 1 ELSE 0 END
 	+ CASE WHEN UPPER([TRACKING METHOD])='N/A' OR UPPER([TRACKING METHOD])='NA'THEN 1 ELSE 0 END as [NA Column Count]
-FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_Placement_Monthly_Final]
-WHERE  [Refreshed_Date] = @refreshed_date
+FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_And_All_Placements_Tables_Combined]
+WHERE  [RefreshedDate] = @refreshed_date
 
 --delete records with CampaignStatus = 'Deleted' (deleted campaigns) 
-DELETE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined]
+DELETE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Final_Business_Rules_Applied_To_Campaigns_And_Placements_Tables]
 WHERE  CampaignStatus = 'Deleted'
-AND [Refreshed_Date] = @refreshed_date
+AND [RefreshedDate] = @refreshed_date
 
 /*
 -- Unlike Pavani's code, we don't need to worry about deleting stuff which we never have
-DELETE [dbo].[Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined]
-Where Refreshed_Date = '2015-03-30 00:00:00.000' --will be no need in the statement
-DELETE [dbo].[Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined]
-Where Refreshed_Date = '2015-08-30 00:00:00.000' --will be no need in the statement
-DELETE [dbo].[Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined]
-Where Refreshed_Date = '2015-09-22 00:00:00.000' --will be no need in the statement
+DELETE [dbo].[Compliance_Final_Business_Rules_Applied_To_Campaigns_And_Placements_Tables]
+Where RefreshedDate = '2015-03-30 00:00:00.000' --will be no need in the statement
+DELETE [dbo].[Compliance_Final_Business_Rules_Applied_To_Campaigns_And_Placements_Tables]
+Where RefreshedDate = '2015-08-30 00:00:00.000' --will be no need in the statement
+DELETE [dbo].[Compliance_Final_Business_Rules_Applied_To_Campaigns_And_Placements_Tables]
+Where RefreshedDate = '2015-09-22 00:00:00.000' --will be no need in the statement
 */
 
 --delete records with AgencyName='GARAGE TEAM MAZDA'
-DELETE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined]
+DELETE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Final_Business_Rules_Applied_To_Campaigns_And_Placements_Tables]
 WHERE UPPER([AgencyName]) = 'GARAGE TEAM MAZDA'
-AND [Refreshed_Date] = @refreshed_date
+AND [RefreshedDate] = @refreshed_date
 
 --update [1By1IneligiblePlanned Amount], [1By1IneligiblePlannedImpressions], [NA Placements], [Placements without Delivery], [Invalid 1x1 Placements], [Invalid1by1PlannedCost], [PlannedCostWithoutDelivery],
 --[NAPlannedCost] columns using logic specified for reporting purposes by Todd Snyder and Jim Mulvey
-UPDATE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined]
+UPDATE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Final_Business_Rules_Applied_To_Campaigns_And_Placements_Tables]
 SET 
 	[1By1IneligiblePlanned Amount] = 
 		CASE WHEN [1By1Acceptable] = 0 then [PlannedAmount]
@@ -370,7 +370,7 @@ SET
 		CASE WHEN [DataDeliveryExists] = 0  then [PlannedAmount] ELSE 0 END,
 	[NAPlannedCost] = 
 		CASE WHEN [NA Column Count] >= 4 THEN [PlannedAmount] ELSE 0 END
-WHERE [Refreshed_Date] = @refreshed_date
+WHERE [RefreshedDate] = @refreshed_date
 
 -----------------------------------------------------
 -- Create Summary table out of the BuyOrderDetails table.
@@ -395,16 +395,16 @@ IF OBJECT_ID('Compliance_Report_Final_BOD_And_Placements_Combined') IS NULL
 		,[OverrideDollars] FLOAT
 		,[RecordType] NVARCHAR(10)
 
-		,[PlacementId]
-		,[CostMethod]
-		,[# of Placements]
-		,[Invalid 1X1 Placements]
-		,[Placements without Delivery]
-		,[NA Placements]
-		,[Invalid1by1PlannedCost]
-		,[PlannedCostWithoutDelivery]
-		,[NAPlannedCost]
-		,[PlannedAmount]
+		,[PlacementId] BIGINT
+		,[CostMethod] NVARCHAR(4000)
+		,[# of Placements] BIGINT
+		,[Invalid 1X1 Placements] BIGINT
+		,[Placements without Delivery] BIGINT
+		,[NA Placements] BIGINT
+		,[Invalid1by1PlannedCost] FLOAT
+		,[PlannedCostWithoutDelivery] FLOAT
+		,[NAPlannedCost] FLOAT
+		,[PlannedAmount] FLOAT
 	)
 
 INSERT INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_BOD_And_Placements_Combined](
@@ -417,8 +417,7 @@ INSERT INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_BOD_An
 	,[CampaignPublicId]
 	,[CampaignName]
 	,[RefreshedDate]
-	,[New_BuyMonth]
-	,[Month], 
+	,[Month]
 	,[# of Records]
 	,[# of Buys Overridden]
 	,[BuyAmount]
@@ -445,7 +444,7 @@ FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails_Final]
 WHERE 
 	[BuyType] in ('Display','Search') 
 	AND UPPER(AgencyName) <> 'GARAGE TEAM MAZDA'
-	AND [Refreshed_Date] = @refreshed_date
+	AND [RefreshedDate] = @refreshed_date
 GROUP BY 
 	CASE WHEN [AgencyAlphaCode]='H7' THEN 'US' ELSE 'Canada' END
 	,[AgencyName]
@@ -467,11 +466,11 @@ ORDER BY -- Note by Phyo: I don't know why they order records here; very ineffic
 /*
 -- Unlike Pavani's code, we don't need to worry about deleting stuff which we never have
 DELETE [dbo].[Compliance_Report_Final_BOD_And_Placements_Combined]
-WHERE Refreshed_Date = '2015-03-30 00:00:00.000'--will be no need in the statement
+WHERE RefreshedDate = '2015-03-30 00:00:00.000'--will be no need in the statement
 DELETE [dbo].[Compliance_Report_Final_BOD_And_Placements_Combined]
-Where Refreshed_Date = '2015-08-30 00:00:00.000'--will be no need in the statement
+Where RefreshedDate = '2015-08-30 00:00:00.000'--will be no need in the statement
 DELETE [dbo].[Compliance_Report_Final_BOD_And_Placements_Combined]
-Where Refreshed_Date = '2015-09-22 00:00:00.000'--will be no need in the statement
+Where RefreshedDate = '2015-09-22 00:00:00.000'--will be no need in the statement
 */
 
 --create temp table to calculate [OverrideDollars] amount
@@ -489,7 +488,6 @@ SELECT
 	,[CampaignName]
 	,[RefreshedDate]
 	,[New_BuyMonth]
-	,[BuyMonth]
 	,SUM([BuyAmount]) AS [OverrideDollars]
 INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Tmp_Report_Full_From_BuyOrderDetails_Table]
 FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails_Final] AS s
@@ -497,7 +495,7 @@ WHERE
 	[BuyType] IN ('Display','Search')
 	AND UPPER(s.[AgencyName]) <> 'GARAGE TEAM MAZDA' 
 	AND s.[Isoverride] = 1
-	AND s.[Refreshed_Date] = @refreshed_date
+	AND s.[RefreshedDate] = @refreshed_date
 GROUP BY 
 	CASE WHEN [AgencyAlphaCode]='H7' THEN 'US' ELSE 'Canada' END
 	,[AgencyName]
@@ -509,7 +507,6 @@ GROUP BY
 	,[CampaignName]
 	,[RefreshedDate]
 	,[New_BuyMonth]
-	,[BuyMonth]
 
 --update [OverrideDollars] column in [Compliance_Report_Final_BOD_And_Placements_Combined] table with values from [OverrideDollars] column in temp table
 UPDATE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_BOD_And_Placements_Combined] b
@@ -524,70 +521,13 @@ WHERE
 	AND b.[CampaignUser] = a.[CampaignUser]
 	AND b.[CampaignPublicId] = a.[CampaignPublicId]
 	AND b.[CampaignName] = a.[CampaignName]
-	AND b.[Refreshed_Date] = a.[Refreshed_Date]
-	AND b.[New_BuyMonth] = a.[New_BuyMonth]
-	AND b.[BuyMonth] = a.[BuyMonth]
+	AND b.[RefreshedDate] = a.[RefreshedDate]
+	AND b.[Month] = a.[New_BuyMonth]
 	AND b.[RecordType] = 'O'
 
 DROP TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Tmp_Report_Full_From_BuyOrderDetails_Table];
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
---::: I am here
--- Insert records from [Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined] table 
+-- Insert records from [Compliance_Final_Business_Rules_Applied_To_Campaigns_And_Placements_Tables] table 
 -- into [Compliance_Report_Final_BOD_And_Placements_Combined] table.
 -- Applying filters [BuyType] in ('Display','Search') and 
 -- PackageType in ('Child','Standalone') and [PlannedDataExists] = 1 (business rules provided by Todd Snyder)
@@ -626,7 +566,7 @@ SELECT
 	,[CampaignPublicId]
 	,[CampaignName]
 	,[RefreshedDate]
-	,[PlacementMonth], 
+	,[PlacementMonth]
 	,[PlacementId]
 	,[CostMethod]
 	,1
@@ -639,32 +579,35 @@ SELECT
 	,[PlannedAmount]
 	,1
 	,'c'
-FROM  [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_Campaigns_And_Placements_Tables_Combined]
+FROM  [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Final_Business_Rules_Applied_To_Campaigns_And_Placements_Tables]
 WHERE 
-	[BuyType] in ('Display','Search') and PackageType in ('Child','Standalone') and [PlannedDataExists] = 1 and convert(varchar(10),[Refreshed_Date],112) like @refreshed_date
+	[BuyType] IN ('Display','Search') 
+	AND PackageType IN ('Child','Standalone') 
+	AND [PlannedDataExists] = 1 
+	AND [RefreshedDate] = @refreshed_date
 
 
 DELETE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_BOD_And_Placements_Combined]
-WHERE AgencyName = 'CATALYST' and convert(varchar(10),[Refreshed_Date],112) like @refreshed_date
+WHERE AgencyName = 'CATALYST' 
+AND [RefreshedDate] = @refreshed_date
 
 DELETE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_BOD_And_Placements_Combined]
-WHERE MasterClientName like ('%MAZDA%') and Country = 'US' and convert(varchar(10),[Refreshed_Date],112) like @refreshed_date
-
+WHERE MasterClientName LIKE ('%MAZDA%') 
+AND Country = 'US' 
+AND [RefreshedDate] = @refreshed_date
 
 --3/28 pp: added logic to delete campaignpublicids from Overrride table that are not in compliance  
-delete from [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_BOD_And_Placements_Combined]
-where convert(varchar(10),[Refreshed_Date],112) like @refreshed_date and CampaignPublicId in 
+DELETE FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_BOD_And_Placements_Combined]
+WHERE [RefreshedDate] = @refreshed_date
+AND CampaignPublicId IN
 ( 
-select distinct CampaignPublicId from  [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_BOD_And_Placements_Combined] WHERE RecordType = 'o'
-except 
-select distinct CampaignPublicId from  [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_BOD_And_Placements_Combined] WHERE RecordType = 'c'
+	SELECT DISTINCT [CampaignPublicId] 
+	FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_BOD_And_Placements_Combined] 
+	WHERE RecordType = 'o'
+	EXCEPT 
+	SELECT DISTINCT [CampaignPublicId] 
+	FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Report_Final_BOD_And_Placements_Combined] 
+	WHERE RecordType = 'c'
 ) 
 
-
-
 GO
-
-
---TODO: Final check these two renamings
---Compliance_Campaigns_Placements_Placement_Monthly_Final => Compliance_All_Prisma_Tables_Combined
---[CampaignCreationUser]=>[CampaignUser]

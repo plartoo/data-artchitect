@@ -1,4 +1,5 @@
 USE [DM_1305_GroupMBenchmarkingUS];
+
 SET ANSI_NULLS ON
 GO
 
@@ -27,14 +28,14 @@ BEGIN
 IF OBJECT_ID('Compliance_BuyOrderDetails_Final') IS NULL
 	CREATE TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails_Final]
 	(
-		[CampaignId] INT
+		[CampaignId] BIGINT
 		,[CampaignPublicId] NVARCHAR(4000)
 		,[CampaignName] NVARCHAR(4000)
 		,[AdvertiserCode] NVARCHAR(4000)
 		,[AdvertiserName] NVARCHAR(4000)
 		,[ProductCode] NVARCHAR(4000)
 		,[EstimateCode] NVARCHAR(4000)
-		,[SupplierId] INT
+		,[SupplierId] BIGINT
 		,[SupplierName] NVARCHAR(4000)
 		,[SupplierCode] NVARCHAR(4000)
 		--,[SupplierZone] NVARCHAR(4000) -- we don't have this in the table via Marketplace
@@ -85,7 +86,7 @@ SELECT [CampaignId]
       ,[LocationCompanyCode]
       ,[MasterClientName]
 	  -- last day of the most recent month
-	  ,CONVERT(DATE, DATEADD(s, -1, DATEADD(mm, DATEDIFF(m, 0, GETDATE()), 0))) AS [Refreshed_Date]
+	  ,CONVERT(DATE, DATEADD(s, -1, DATEADD(mm, DATEDIFF(m, 0, GETDATE()), 0))) AS [RefreshedDate]
 FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_BuyOrderDetails]
 --Pavani's code appends only 2016 and 2017 data like below
 --WHERE ([BuyMonth] LIKE '%2017%') 

@@ -15,14 +15,15 @@ GO
 -- into the final table.
 -- =========================================================================
 
+
 CREATE PROC [dbo].[COMPLIANCE_STEP6_APPEND_PLACEMENTS_DATA_TO_FINAL_TABLE]  AS
 BEGIN
 
 SET ARITHABORT OFF;
 SET ARITHIGNORE ON;
 
-IF OBJECT_ID('Compliance_Campaigns_Placements_Placement_Monthly_Final') IS NULL
-	CREATE TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_Placement_Monthly_Final]
+IF OBJECT_ID('Compliance_Campaigns_And_All_Placements_Tables_Combined') IS NULL
+	CREATE TABLE [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_And_All_Placements_Tables_Combined]
 	(
 		 [AgencyName] NVARCHAR(4000)
 		,[AgencyAlphaCode] NVARCHAR(4000)
@@ -49,13 +50,13 @@ IF OBJECT_ID('Compliance_Campaigns_Placements_Placement_Monthly_Final') IS NULL
 		,[SupplierName] NVARCHAR(4000)
 		,[BuyType] NVARCHAR(4000)
 		,[BuyCategory] NVARCHAR(4000)
-		,[CampaignId] INT
+		,[CampaignId] BIGINT
 		,[CampaignPublicId] NVARCHAR(4000)
 		,[CampaignName] NVARCHAR(4000)
 		,[PackageType] NVARCHAR(4000)
-		,[PackageId] INT
-		,[PlacementId] INT
-		,[ParentId] INT
+		,[PackageId] BIGINT
+		,[PlacementId] BIGINT
+		,[ParentId] BIGINT
 		,[PlacementName] NVARCHAR(4000)
 		,[PlacementType] NVARCHAR(4000)
 		,[Site] NVARCHAR(4000)
@@ -111,11 +112,11 @@ IF OBJECT_ID('Compliance_Campaigns_Placements_Placement_Monthly_Final') IS NULL
 		,[Targeting Context Type] NVARCHAR(4000)
 		,[PRIMARY CONTENT CHANNEL] NVARCHAR(4000)
 		,[CONTENT CHANNEL DETAILS] NVARCHAR(4000)
-		,[Refreshed_Date] SMALLDATETIME
+		,[RefreshedDate] SMALLDATETIME
 	)
 
 -- Append 2017 US AND CANADA monthly data 
-INSERT INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_Placement_Monthly_Final]
+INSERT INTO [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_And_All_Placements_Tables_Combined]
 SELECT 
       [AgencyName]
 	  ,[AgencyAlphaCode]
@@ -203,7 +204,7 @@ SELECT
       ,[Targeting Context Type]
       ,[PRIMARY CONTENT CHANNEL]
       ,[CONTENT CHANNEL DETAILS]
-	  ,CONVERT(DATE, DATEADD(s, -1, DATEADD(mm, DATEDIFF(m, 0, GETDATE()), 0))) AS [Refreshed_Date]
+	  ,CONVERT(DATE, DATEADD(s, -1, DATEADD(mm, DATEDIFF(m, 0, GETDATE()), 0))) AS [RefreshedDate]
 FROM [DM_1305_GroupMBenchmarkingUS].[dbo].[Compliance_Campaigns_Placements_PlacementMonthly_AdvPlacementDetails]
 --WHERE YEAR([PlacementMonthlyStartDate])=2017
 -- Pavani also appends 2016 data until march monthly refresh-- which is q1 2017 
