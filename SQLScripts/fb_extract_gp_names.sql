@@ -1,17 +1,3 @@
-/*
-Description: Script to extract the unmapped campaign_group_names
-based on incampaign_facebook_mapped_campaign_group_name
-and v_incampaign_facebook_impressions_and_spend.
-
-Author: Phyo Thiha
-Last Modified: Feb 1, 2017
-
-NOTE: After FB changed their schema in Jan 2017, we will use 'fb_campaign_name' 
-instead of 'fb_campaign_group_name', but the legacy configuration of tables in 
-DataVault means we will stick to 'fb_campaign_group_name' for existing tables
-such as 'incampaign_facebook_mapped_campaign_group_name'.
-*/
-
 DROP TABLE
     IF EXISTS gaintheory_us_targetusa_14.incampaign_tmp_impressions_and_spend_lj_campaign_gp_mappings;
 DROP TABLE
@@ -22,7 +8,8 @@ CREATE TEMP TABLE
     (
         SELECT
             a.fb_campaign_name,
-            b.fb_mapped_campaign_group_name
+            b.Campaign,
+            b.Sub_campaign
         FROM
             gaintheory_us_targetusa_14.v_incampaign_facebook_impressions_and_spend AS a
         LEFT JOIN
@@ -41,7 +28,7 @@ CREATE TEMP TABLE gaintheory_us_targetusa_14.incampaign_tmp_unmapped_campaign_na
     FROM
         gaintheory_us_targetusa_14.incampaign_tmp_impressions_and_spend_lj_campaign_gp_mappings AS a
     WHERE
-        fb_mapped_campaign_group_name IS NULL );
+        (Campaign IS NULL OR Sub_campaign IS NULL)  );
 
 CREATE TABLE
     IF NOT EXISTS gaintheory_us_targetusa_14.incampaign_facebook_campaign_names_to_map
@@ -88,4 +75,3 @@ INTO
         'Merged unmapped/new campaign group names'
     );
 COMMIT;
-

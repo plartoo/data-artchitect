@@ -63,8 +63,8 @@ def vertica_extract(query, columns, index=None):
             results.columns = columns
             if index:
                 return results.set_index(index)
-
         return results
+
 
 def set_flag_value(table_name, schema_name, flag_name, value):
     return """
@@ -87,7 +87,7 @@ def main():
     existing_mapping_table = 'incampaign_facebook_mapped_campaign_group_name'
     flag_table = 'incampaign_process_switches'
     flag = 'fb_etl_and_export_to_s3'
-    columns_to_extract = ['fb_campaign_group_name', 'Campaign', 'Sub_campaign']
+    columns_to_extract = ['fb_campaign_group_name']#, 'Campaign', 'Sub_campaign']
 
     # Location of sources and destination files
     output_folder = ROOT_FOLDER + 'Facebook'
